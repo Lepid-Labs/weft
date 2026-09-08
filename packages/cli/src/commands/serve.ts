@@ -8,6 +8,7 @@ import {
 	selfCheck,
 	startBuiltServer,
 	startDevServer,
+	statusTag,
 } from "../ui-server.js";
 
 export const serveCommand = command(
@@ -127,14 +128,16 @@ export const serveCommand = command(
 					: await startDevServer(service, uiRoot, port, host);
 			const url = `http://${browserHost(host)}:${port}`;
 			console.log(`Weft ${version} on Node ${process.version}, listening on ${server.address}`);
-			console.log(`Weft server running at ${url}${mode === "dev" ? " (vite dev)" : ""}`);
 
-			// Prove the url works from here before sending a browser to it, so a
-			// browser that still cannot connect is known to be blocked on its side.
+			// Prove the url works from here before announcing it or sending a
+			// browser to it, so a browser that still cannot connect is known to be
+			// blocked on its side.
 			const check = await selfCheck(url);
+			const running = `Weft server running at ${url}${mode === "dev" ? " (vite dev)" : ""}`;
 			if (check.ok) {
-				console.log("Self-check passed: the UI and the API answer at that url from this process");
+				console.log(`${statusTag(true)} ${running}`);
 			} else {
+				console.error(`${statusTag(false)} ${running}`);
 				console.error(
 					`Self-check failed (${check.reason}): the server is listening on ${server.address} ` +
 						`but ${url} does not answer from this process. Try another --port, or another --host.`

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WeftService } from "@lepid-labs/weft-core";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
 	BUILT_HANDLER,
 	browserHost,
@@ -14,6 +14,7 @@ import {
 	routeRequest,
 	selfCheck,
 	startBuiltServer,
+	statusTag,
 } from "./ui-server.js";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
@@ -225,5 +226,22 @@ describe("startBuiltServer", () => {
 		} finally {
 			occupant.close();
 		}
+	});
+});
+
+describe("statusTag", () => {
+	afterEach(() => vi.unstubAllEnvs());
+
+	it("colours the label green or red on a terminal", () => {
+		vi.stubEnv("NO_COLOR", undefined);
+		expect(statusTag(true, { isTTY: true })).toBe("[\x1b[32mOK\x1b[0m]");
+		expect(statusTag(false, { isTTY: true })).toBe("[\x1b[31mFAIL\x1b[0m]");
+	});
+
+	it("stays plain when piped or when NO_COLOR is set", () => {
+		vi.stubEnv("NO_COLOR", undefined);
+		expect(statusTag(true, { isTTY: false })).toBe("[OK]");
+		vi.stubEnv("NO_COLOR", "1");
+		expect(statusTag(true, { isTTY: true })).toBe("[OK]");
 	});
 });

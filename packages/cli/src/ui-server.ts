@@ -107,6 +107,16 @@ export function isPortInUse(err: unknown): boolean {
 	return /already in use/i.test(err.message);
 }
 
+/**
+ * `[OK]` or `[FAIL]` for a log line, coloured when stdout is a terminal that
+ * has not asked for plain output (`NO_COLOR`, https://no-color.org).
+ */
+export function statusTag(ok: boolean, stream: { isTTY?: boolean } = process.stdout): string {
+	const label = ok ? "OK" : "FAIL";
+	const colour = !!stream.isTTY && !process.env.NO_COLOR;
+	return colour ? `[\x1b[${ok ? 32 : 31}m${label}\x1b[0m]` : `[${label}]`;
+}
+
 export type SelfCheck = { ok: true } | { ok: false; reason: string };
 
 /**
