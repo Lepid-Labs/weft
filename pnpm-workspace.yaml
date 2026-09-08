@@ -5,3 +5,5 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - '@nazuraki/styles@0.3.0'
+overrides:
+  'cookie@<0.7.0': '^0.7.2'
