@@ -27,7 +27,10 @@ weft serve --port 8080   # custom port
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--port` | `7777` | Port to listen on |
-| `--open` | `true` | Open browser on start |
+| `--host` | every interface | Interface to listen on; try `127.0.0.1` if the browser cannot connect |
+| `--open` | `false` | Open the browser once the server is up |
+
+On start it prints how many docs and edges were indexed, the Node version and the socket it is listening on, then requests the UI and the API from inside the process before opening a browser. A passing self-check with a browser that still cannot connect points at the browser's side: a proxy that does not bypass localhost, or a policy. A failing one names the socket error.
 
 The server rebuilds and hot-reloads the manifest whenever docs change. Shut down with `Ctrl-C`.
 

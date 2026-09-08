@@ -5,7 +5,14 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WeftService } from "@lepid-labs/weft-core";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { BUILT_HANDLER, chooseUiMode, routeRequest } from "./ui-server.js";
+import {
+	BUILT_HANDLER,
+	browserHost,
+	chooseUiMode,
+	describeAddress,
+	routeRequest,
+	selfCheck,
+} from "./ui-server.js";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 const FIXTURES_DIR = resolve(__dirname, "__fixtures__");
@@ -113,5 +120,70 @@ describe("routeRequest", () => {
 	it("does not mistake a path that merely starts with 'api' for the API", async () => {
 		const res = await fetch(`${base}/apiary`);
 		expect(await res.text()).toBe("ui:/apiary");
+	});
+
+	it("passes the self-check when both the API and the UI answer", async () => {
+		expect(await selfCheck(base)).toEqual({ ok: true });
+	});
+});
+
+describe("selfCheck", () => {
+	it("names the socket error when nothing is listening", async () => {
+		// Bind to learn a free port, then release it so the check hits a closed one.
+		const probe = createServer();
+		await new Promise<void>((done) => probe.listen(0, "127.0.0.1", done));
+		const { port } = probe.address() as { port: number };
+		await new Promise<void>((done) => probe.close(() => done()));
+
+		const result = await selfCheck(`http://127.0.0.1:${port}`);
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.reason).toMatch(/^GET \/api\/manifest: ECONNREFUSED/);
+	});
+
+	it("reports the first path that does not answer 2xx", async () => {
+		const server = createServer((req, res) => {
+			res.statusCode = req.url === "/" ? 500 : 200;
+			res.end("{}");
+		});
+		await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+		const { port } = server.address() as { port: number };
+		try {
+			expect(await selfCheck(`http://127.0.0.1:${port}`)).toEqual({
+				ok: false,
+				reason: "GET / → HTTP 500",
+			});
+		} finally {
+			server.close();
+		}
+	});
+});
+
+describe("describeAddress", () => {
+	it("renders IPv4 and IPv6 socket addresses", () => {
+		expect(describeAddress({ address: "127.0.0.1", family: "IPv4", port: 7777 })).toBe(
+			"127.0.0.1:7777"
+		);
+		expect(describeAddress({ address: "::", family: "IPv6", port: 7777 })).toBe("[::]:7777");
+	});
+
+	it("passes a pipe path through and names a server that is not listening", () => {
+		expect(describeAddress("/tmp/weft.sock")).toBe("/tmp/weft.sock");
+		expect(describeAddress(null)).toBe("(not listening)");
+		expect(describeAddress(undefined)).toBe("(not listening)");
+	});
+});
+
+describe("browserHost", () => {
+	it("sends the browser to localhost for the default and wildcard binds", () => {
+		expect(browserHost(undefined)).toBe("localhost");
+		expect(browserHost("0.0.0.0")).toBe("localhost");
+		expect(browserHost("::")).toBe("localhost");
+	});
+
+	it("uses an explicit host as given, bracketing IPv6 literals", () => {
+		expect(browserHost("127.0.0.1")).toBe("127.0.0.1");
+		expect(browserHost("::1")).toBe("[::1]");
+		expect(browserHost("docs.local")).toBe("docs.local");
 	});
 });
