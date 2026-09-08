@@ -1,7 +1,13 @@
 import { WeftService, fetchRepo, loadConfig, resolveFetchedRepos } from "@lepid-labs/weft-core";
 import { command } from "cleye";
 import { openBrowser } from "../open-browser.js";
-import { chooseUiMode, startBuiltServer, startDevServer } from "../ui-server.js";
+import {
+	browserHost,
+	chooseUiMode,
+	selfCheck,
+	startBuiltServer,
+	startDevServer,
+} from "../ui-server.js";
 
 export const serveCommand = command(
 	{
@@ -15,6 +21,11 @@ export const serveCommand = command(
 				type: Number,
 				description: "Port to serve on",
 				default: 7777,
+			},
+			host: {
+				type: String,
+				description:
+					"Interface to listen on (default: every interface; try 127.0.0.1 if the browser cannot connect)",
 			},
 			open: {
 				type: Boolean,
@@ -58,6 +69,7 @@ export const serveCommand = command(
 		// drive letter on Windows (`/C:/...`), which resolve() then mangles.
 		const require = createRequire(import.meta.url);
 		const uiRoot = dirname(require.resolve("@lepid-labs/weft-ui/package.json"));
+		const { version } = require("../../package.json") as { version: string };
 
 		if (argv.flags.repo && argv.flags.gh && argv.flags.repo !== argv.flags.gh) {
 			console.error("serve: --repo and --gh name different repos; pass one of them");
@@ -97,19 +109,36 @@ export const serveCommand = command(
 			}
 			const service = new WeftService(config);
 
-			await service.rebuild();
+			const manifest = await service.rebuild();
 			await service.writeManifest();
+			console.log(
+				`Indexed ${manifest.nodes.length} docs, ${manifest.edges.length} edges in ${rootDir}`
+			);
 
 			// SvelteKit's server loads read the manifest file from this path — SSR
 			// cannot reach the /api handler through SvelteKit's internal fetch.
 			process.env.WEFT_MANIFEST_PATH = service.manifestPath;
 
+			const host = argv.flags.host;
 			const server =
 				mode === "built"
-					? await startBuiltServer(service, uiRoot, port)
-					: await startDevServer(service, uiRoot, port);
-			const url = `http://localhost:${port}`;
+					? await startBuiltServer(service, uiRoot, port, host)
+					: await startDevServer(service, uiRoot, port, host);
+			const url = `http://${browserHost(host)}:${port}`;
+			console.log(`Weft ${version} on Node ${process.version}, listening on ${server.address}`);
 			console.log(`Weft server running at ${url}${mode === "dev" ? " (vite dev)" : ""}`);
+
+			// Prove the url works from here before sending a browser to it, so a
+			// browser that still cannot connect is known to be blocked on its side.
+			const check = await selfCheck(url);
+			if (check.ok) {
+				console.log("Self-check passed: the UI and the API answer at that url from this process");
+			} else {
+				console.error(
+					`Self-check failed (${check.reason}): the server is listening on ${server.address} ` +
+						`but ${url} does not answer from this process. Try --host 127.0.0.1, or another --port.`
+				);
+			}
 			if (argv.flags.open) openBrowser(url);
 
 			// Watch for doc changes
