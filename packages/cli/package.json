@@ -10,10 +10,7 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft#readme",
 	"type": "module",
-	"files": [
-		"bin",
-		"dist"
-	],
+	"files": ["bin", "dist"],
 	"bin": {
 		"weft": "bin/weft.js"
 	},
