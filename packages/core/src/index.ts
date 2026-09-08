@@ -7,6 +7,7 @@ export {
 	rootForNodeId,
 	rootForPath,
 	slugify,
+	validateStyle,
 } from "./config.js";
 export type { DocsRoot } from "./config.js";
 export { countLines, hashBytes, hashContent, normalizeContent } from "./content.js";

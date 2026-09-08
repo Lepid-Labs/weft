@@ -165,10 +165,12 @@ function validateUserConfig(raw: unknown, file: string): UserConfig {
 
 /**
  * Shape only: a name, or a {dark, light} pair. Names are checked by the UI
- * against the installed @nazuraki/styles manifest — core validating them
- * would pin the theme roster to a core release and defeat `styleUrl`.
+ * (and the CLI, before it serves) against the installed @nazuraki/styles
+ * manifest — core validating them would pin the theme roster to a core
+ * release and defeat `styleUrl`. `source` names where the value came from
+ * for the error: a config file, or a CLI flag.
  */
-function validateStyle(style: unknown, file: string): asserts style is StyleConfig {
+export function validateStyle(style: unknown, source: string): asserts style is StyleConfig {
 	if (typeof style === "string" && style.length > 0) return;
 	if (typeof style === "object" && style !== null && !Array.isArray(style)) {
 		const keys = Object.keys(style).sort();
@@ -182,7 +184,7 @@ function validateStyle(style: unknown, file: string): asserts style is StyleConf
 		}
 	}
 	throw new Error(
-		`weft config: "style" must be a style name or a {dark, light} pair of style names (in ${file})`
+		`weft config: "style" must be a style name or a {dark, light} pair of style names (in ${source})`
 	);
 }
 

@@ -1,6 +1,13 @@
+import type { StyleConfig } from "@lepid-labs/weft-core";
 import { WeftService, fetchRepo, loadConfig, resolveFetchedRepos } from "@lepid-labs/weft-core";
 import { command } from "cleye";
 import { openBrowser } from "../open-browser.js";
+import {
+	UnknownStyleError,
+	assertServableStyle,
+	loadStyleRoster,
+	parseStyleFlag,
+} from "../styles.js";
 import {
 	browserHost,
 	chooseUiMode,
@@ -57,6 +64,16 @@ export const serveCommand = command(
 				description: "Re-resolve fetched refs even when the cached resolution is fresh",
 				default: false,
 			},
+			style: {
+				type: String,
+				description:
+					"ui-std-lib style: one theme name, or a dark/light pair (e.g. luminous-precision/summer-cloud); overrides the config",
+			},
+			styleUrl: {
+				type: String,
+				description:
+					"Base URL serving ui-std-lib theme CSS and manifest.json, for a style newer than the bundled set",
+			},
 		},
 	},
 	async (argv) => {
@@ -80,6 +97,14 @@ export const serveCommand = command(
 		const repo = argv.flags.repo ?? argv.flags.gh;
 		if (repo && argv._.rootDir) {
 			console.error("serve: pass either a root directory or --repo, not both");
+			process.exit(1);
+		}
+		// A malformed --style fails before anything is fetched or indexed.
+		let styleFlag: StyleConfig | undefined;
+		try {
+			styleFlag = argv.flags.style === undefined ? undefined : parseStyleFlag(argv.flags.style);
+		} catch (err) {
+			console.error(err instanceof Error ? err.message : err);
 			process.exit(1);
 		}
 
@@ -109,6 +134,14 @@ export const serveCommand = command(
 				// local checkout wins, everything else is fetched at its HEAD.
 				config = await resolveFetchedRepos(config, { refresh: argv.flags.refresh });
 			}
+			// Flags outrank both config files: the committed one and the local
+			// override. With --repo the local file would live inside the fetch
+			// cache, so the flag is the only per-run override there.
+			if (styleFlag) config = { ...config, style: styleFlag };
+			if (argv.flags.styleUrl) config = { ...config, styleUrl: argv.flags.styleUrl };
+			// A name nothing can serve fails here, not in the browser — the UI
+			// runs the same check, but only once a page is requested.
+			assertServableStyle(config.style, config.styleUrl, loadStyleRoster(uiRoot));
 			const service = new WeftService(config);
 
 			const manifest = await service.rebuild();
@@ -160,7 +193,9 @@ export const serveCommand = command(
 			process.on("SIGINT", shutdown);
 			process.on("SIGTERM", shutdown);
 		} catch (err) {
-			if (isPortInUse(err)) {
+			if (err instanceof UnknownStyleError) {
+				console.error(`serve: ${err.message}`);
+			} else if (isPortInUse(err)) {
 				const where = `${argv.flags.host}:${port}`;
 				console.error(
 					`${where} is already in use — another Weft, or something else. Pass --port to pick another.`
