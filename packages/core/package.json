@@ -10,9 +10,7 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft#readme",
 	"type": "module",
-	"files": [
-		"dist"
-	],
+	"files": ["dist"],
 	"main": "dist/index.js",
 	"types": "src/index.ts",
 	"exports": {
