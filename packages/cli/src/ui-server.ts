@@ -85,10 +85,36 @@ export function describeAddress(address: AddressInfo | string | null | undefined
  * The host to put in the url the browser is sent to. A wildcard bind (or
  * none, which binds every interface) is reached as `localhost`; an explicit
  * host is used as given, bracketed if it is an IPv6 literal.
+ *
+ * The serve command defaults `--host` to `127.0.0.1` rather than binding
+ * every interface: a wildcard bind is allowed to share its port with a
+ * process bound to a specific address, so it starts without complaint and
+ * the printed url reaches the other process. A loopback bind collides
+ * loudly instead.
  */
 export function browserHost(host: string | undefined): string {
 	if (host === undefined || host === "0.0.0.0" || host === "::") return "localhost";
 	return host.includes(":") ? `[${host}]` : host;
+}
+
+/**
+ * True for the error a listen raises when the port is taken: Node's
+ * `EADDRINUSE`, or Vite's plain-message rejection under `strictPort`.
+ */
+export function isPortInUse(err: unknown): boolean {
+	if (!(err instanceof Error)) return false;
+	if ((err as { code?: string }).code === "EADDRINUSE") return true;
+	return /already in use/i.test(err.message);
+}
+
+/**
+ * `[OK]` or `[FAIL]` for a log line, coloured when stdout is a terminal that
+ * has not asked for plain output (`NO_COLOR`, https://no-color.org).
+ */
+export function statusTag(ok: boolean, stream: { isTTY?: boolean } = process.stdout): string {
+	const label = ok ? "OK" : "FAIL";
+	const colour = !!stream.isTTY && !process.env.NO_COLOR;
+	return colour ? `[\x1b[${ok ? 32 : 31}m${label}\x1b[0m]` : `[${label}]`;
 }
 
 export type SelfCheck = { ok: true } | { ok: false; reason: string };
@@ -104,7 +130,12 @@ export async function selfCheck(url: string, timeoutMs = 5000): Promise<SelfChec
 	for (const path of ["/api/manifest", "/"]) {
 		try {
 			const res = await fetch(url + path, { signal: AbortSignal.timeout(timeoutMs) });
-			if (!res.ok) return { ok: false, reason: `GET ${path} → HTTP ${res.status}` };
+			if (!res.ok) {
+				return {
+					ok: false,
+					reason: `GET ${path} → HTTP ${res.status} (is something else answering on that port?)`,
+				};
+			}
 			await res.arrayBuffer(); // drain, so the connection is released
 		} catch (err) {
 			return { ok: false, reason: `GET ${path}: ${describeError(err)}` };
@@ -163,7 +194,9 @@ export async function startDevServer(
 	process.chdir(uiRoot);
 	const server = await createViteServer({
 		root: uiRoot,
-		server: { port, host },
+		// strictPort: Vite would otherwise move to the next free port on its own,
+		// and the url the command prints would name a port nothing listens on.
+		server: { port, host, strictPort: true },
 		plugins: [weftApiPlugin(service)],
 	});
 	await server.listen();

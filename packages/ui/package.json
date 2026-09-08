@@ -10,9 +10,7 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft#readme",
 	"type": "module",
-	"files": [
-		"build"
-	],
+	"files": ["build"],
 	"exports": {
 		"./handler": "./build/handler.js",
 		"./package.json": "./package.json"
