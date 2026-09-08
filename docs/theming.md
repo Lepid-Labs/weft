@@ -20,6 +20,19 @@ The default is the pair above. `weft.config.local.yaml` may also set `style`
 (and `styleUrl`) — one developer previewing the corpus in a different theme
 without touching the committed config; the local value wins.
 
+`weft serve` takes the same choice as a flag, which outranks both files:
+
+```sh
+weft serve --style summer-cloud                          # one theme
+weft serve --style luminous-precision/summer-cloud       # a dark/light pair
+npx @lepid-labs/weft serve --gh org/repo --style neon-butterfly
+```
+
+That last form is the only per-run override for a fetched repo, whose local
+config file would have to live inside the fetch cache. A name the bundled set
+lacks is rejected before the server starts unless `--style-url` (or
+`styleUrl` in config) says where to load it from.
+
 ## Scheme resolution
 
 With a pair configured, which half renders is the *scheme* choice:
