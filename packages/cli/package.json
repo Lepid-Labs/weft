@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Weft CLI: serve, index and check a documentation graph, from a checkout or straight from GitHub",
 	"license": "MIT",
 	"repository": {
@@ -10,7 +10,10 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft#readme",
 	"type": "module",
-	"files": ["bin", "dist"],
+	"files": [
+		"bin",
+		"dist"
+	],
 	"bin": {
 		"weft": "bin/weft.js"
 	},
