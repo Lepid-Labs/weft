@@ -10,8 +10,10 @@ import {
 	browserHost,
 	chooseUiMode,
 	describeAddress,
+	isPortInUse,
 	routeRequest,
 	selfCheck,
+	startBuiltServer,
 } from "./ui-server.js";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
@@ -151,7 +153,7 @@ describe("selfCheck", () => {
 		try {
 			expect(await selfCheck(`http://127.0.0.1:${port}`)).toEqual({
 				ok: false,
-				reason: "GET / → HTTP 500",
+				reason: "GET / → HTTP 500 (is something else answering on that port?)",
 			});
 		} finally {
 			server.close();
@@ -185,5 +187,43 @@ describe("browserHost", () => {
 		expect(browserHost("127.0.0.1")).toBe("127.0.0.1");
 		expect(browserHost("::1")).toBe("[::1]");
 		expect(browserHost("docs.local")).toBe("docs.local");
+	});
+});
+
+describe("isPortInUse", () => {
+	it("recognises Node's EADDRINUSE and Vite's strictPort rejection", () => {
+		expect(isPortInUse(Object.assign(new Error("listen EADDRINUSE"), { code: "EADDRINUSE" }))).toBe(
+			true
+		);
+		expect(isPortInUse(new Error("Port 7777 is already in use"))).toBe(true);
+	});
+
+	it("leaves every other failure alone", () => {
+		expect(isPortInUse(new Error("ENOENT: no such file"))).toBe(false);
+		expect(isPortInUse("EADDRINUSE")).toBe(false);
+		expect(isPortInUse(undefined)).toBe(false);
+	});
+});
+
+describe("startBuiltServer", () => {
+	it("fails with a port-in-use error rather than sharing a taken port", async () => {
+		// __fixtures__/ui-stub holds a stand-in for the adapter-node build.
+		const uiRoot = join(FIXTURES_DIR, "ui-stub");
+		const service = new WeftService({
+			rootDir: FIXTURES_DIR,
+			docsDir: "docs",
+			entryPoint: "docs/README.md",
+			ignore: [],
+		});
+		const occupant = createServer((_req, res) => res.end("not weft"));
+		await new Promise<void>((done) => occupant.listen(0, "127.0.0.1", done));
+		const { port } = occupant.address() as { port: number };
+		try {
+			await expect(startBuiltServer(service, uiRoot, port, "127.0.0.1")).rejects.toSatisfy(
+				isPortInUse
+			);
+		} finally {
+			occupant.close();
+		}
 	});
 });

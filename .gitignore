@@ -15,3 +15,6 @@ _site
 .vscode/
 weft.config.local.yaml
 weft.config.local.yml
+
+# The adapter-node stand-in ui-server.test.ts serves
+!packages/cli/src/__fixtures__/ui-stub/build/
