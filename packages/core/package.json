@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft-core",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Weft's document graph: indexing, links, validation and search over a docs tree",
 	"license": "MIT",
 	"repository": {
@@ -10,7 +10,9 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft#readme",
 	"type": "module",
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"main": "dist/index.js",
 	"types": "src/index.ts",
 	"exports": {
