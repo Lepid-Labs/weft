@@ -8,6 +8,7 @@ import {
 	loadStyleRoster,
 	parseStyleFlag,
 } from "../styles.js";
+import { resolveSubRoot } from "../sub-root.js";
 import {
 	browserHost,
 	chooseUiMode,
@@ -54,6 +55,11 @@ export const serveCommand = command(
 			gh: {
 				type: String,
 				description: "Alias of --repo",
+			},
+			dir: {
+				type: String,
+				description:
+					"Serve this subdirectory of the root (or of the fetched repo) as the root: its weft.config.yaml, its docs",
 			},
 			ref: {
 				type: String,
@@ -125,6 +131,9 @@ export const serveCommand = command(
 			} else {
 				rootDir = resolve(argv._.rootDir ?? process.cwd());
 			}
+			// One repo can hold several sites: --dir picks which one is the root, so
+			// its config, docs and repos map resolve from there.
+			rootDir = resolveSubRoot(rootDir, argv.flags.dir);
 
 			// The CLI owns the single WeftService. The UI never constructs one — it
 			// consumes /api JSON (client) and the manifest file (SSR).

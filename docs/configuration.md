@@ -392,6 +392,13 @@ Weft fetches that repo, reads its `weft.config.yaml`, fetches the repos it refer
 
 Fetches are blobless partial clones (`--filter=blob:none`), so each fetched root keeps its full git history — `modified` dates and the history-reading checks work exactly as over a local checkout. Clones land in a cache (`$WEFT_CACHE_DIR`, `$XDG_CACHE_HOME/weft`, or `~/.cache/weft`) keyed by resolved commit sha, so a moved branch invalidates cleanly; a branch's ref resolution is re-checked after 15 minutes, or immediately with `--refresh`. Fetched checkouts are read-only: nothing is written into them, and they are not watched for changes.
 
+One repo can hold several sites, each a directory with its own `weft.config.yaml` and docs. `--dir` serves one of them: the config, `docsDir` and `repos` paths all resolve from that directory, as if it were the repo root. It must be a relative path that stays inside the repo, and it works the same over a local root.
+
+```sh
+weft serve --repo acme/docs --dir sites/help  # the help site in acme/docs
+weft serve . --dir sites/help                 # the same, from a checkout
+```
+
 Private repos authenticate with `GH_TOKEN` or `GITHUB_TOKEN`, falling back to `gh auth token` when the GitHub CLI is installed. GitHub reports a private repo it will not serve exactly like a repo that does not exist, so a not-found error always means one of the two. GitHub only; other hosts are out of scope.
 
 ### Manifest Placement
