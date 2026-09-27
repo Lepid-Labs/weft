@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft-ui",
-	"version": "0.1.4",
+	"version": "0.2.0",
 	"description": "Weft's browser UI, prebuilt for the CLI to serve",
 	"license": "MIT",
 	"repository": {
