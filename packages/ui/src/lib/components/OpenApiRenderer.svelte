@@ -176,19 +176,19 @@ function schemaTypeLabel(schema: Schema | undefined): string {
 
 function responseColor(code: string): string {
 	const n = parseInt(code);
-	if (n >= 200 && n < 300) return "nb-badge--success";
-	if (n >= 300 && n < 400) return "nb-badge--info";
-	if (n >= 400 && n < 500) return "nb-badge--warning";
-	if (n >= 500) return "nb-badge--danger";
+	if (n >= 200 && n < 300) return "ld-badge--success";
+	if (n >= 300 && n < 400) return "ld-badge--info";
+	if (n >= 400 && n < 500) return "ld-badge--warning";
+	if (n >= 500) return "ld-badge--danger";
 	return "";
 }
 
 /** Semantic badge hue per HTTP method — reads, writes, mutations, deletes. */
 function methodVariant(method: string): string {
-	if (method === "get") return "nb-badge--success";
-	if (method === "post") return "nb-badge--info";
-	if (method === "put" || method === "patch") return "nb-badge--warning";
-	if (method === "delete") return "nb-badge--danger";
+	if (method === "get") return "ld-badge--success";
+	if (method === "post") return "ld-badge--info";
+	if (method === "put" || method === "patch") return "ld-badge--warning";
+	if (method === "delete") return "ld-badge--danger";
 	return "";
 }
 </script>
@@ -204,7 +204,7 @@ function methodVariant(method: string): string {
 			<div class="info-block">
 				<h1 class="spec-title">{spec.info.title ?? 'API Reference'}</h1>
 				{#if spec.info.version}
-					<span class="nb-badge version-badge">{spec.info.version}</span>
+					<span class="ld-badge version-badge">{spec.info.version}</span>
 				{/if}
 				{#if spec.info.description}
 					<p class="spec-description">{spec.info.description}</p>
@@ -237,7 +237,7 @@ function methodVariant(method: string): string {
 						{@const key = opId}
 						<div class="operation" id={opId}>
 							<button class="op-header" onclick={() => toggle(key)} aria-expanded={!isCollapsed(key)}>
-								<span class="nb-badge method-badge {methodVariant(method)}">{method.toUpperCase()}</span>
+								<span class="ld-badge method-badge {methodVariant(method)}">{method.toUpperCase()}</span>
 								<code class="op-path">{path}</code>
 								{#if operation.summary}
 									<span class="op-summary">{operation.summary}</span>
@@ -254,7 +254,7 @@ function methodVariant(method: string): string {
 									<!-- Parameters -->
 									{#if operation.parameters?.length}
 										<h4 class="subsection-label">Parameters</h4>
-										<table class="nb-table params-table">
+										<table class="ld-table params-table">
 											<thead>
 												<tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Description</th></tr>
 											</thead>
@@ -262,7 +262,7 @@ function methodVariant(method: string): string {
 												{#each operation.parameters as param}
 													<tr>
 														<td><code>{param.name}</code></td>
-														<td><span class="nb-badge param-in">{param.in}</span></td>
+														<td><span class="ld-badge param-in">{param.in}</span></td>
 														<td><code class="type-label">{schemaTypeLabel(param.schema as Schema)}</code></td>
 														<td>{param.required ? '✓' : ''}</td>
 														<td>{param.description ?? ''}</td>
@@ -291,14 +291,14 @@ function methodVariant(method: string): string {
 									<!-- Responses -->
 									{#if operation.responses && Object.keys(operation.responses).length > 0}
 										<h4 class="subsection-label">Responses</h4>
-										<table class="nb-table params-table">
+										<table class="ld-table params-table">
 											<thead>
 												<tr><th>Status</th><th>Description</th><th>Content Type</th></tr>
 											</thead>
 											<tbody>
 												{#each Object.entries(operation.responses) as [code, response]}
 													<tr>
-														<td><span class="nb-badge status-code {responseColor(code)}">{code}</span></td>
+														<td><span class="ld-badge status-code {responseColor(code)}">{code}</span></td>
 														<td>{response.description ?? ''}</td>
 														<td>
 															{#if response.content}
@@ -329,7 +329,7 @@ function methodVariant(method: string): string {
 					<div class="schema-item" id={sId}>
 						<button class="op-header" onclick={() => toggle(sId)} aria-expanded={!isCollapsed(sId)}>
 							<span class="schema-name">{name}</span>
-							{#if schema.type}<span class="nb-badge param-in">{schema.type}</span>{/if}
+							{#if schema.type}<span class="ld-badge param-in">{schema.type}</span>{/if}
 							<span class="toggle-icon">{isCollapsed(sId) ? '▶' : '▼'}</span>
 						</button>
 
@@ -342,7 +342,7 @@ function methodVariant(method: string): string {
 									<p class="op-description">Enum: {schema.enum.map((v) => JSON.stringify(v)).join(', ')}</p>
 								{/if}
 								{#if schema.properties && Object.keys(schema.properties).length > 0}
-									<table class="nb-table params-table">
+									<table class="ld-table params-table">
 										<thead>
 											<tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr>
 										</thead>
@@ -378,7 +378,7 @@ function methodVariant(method: string): string {
 	.loading, .error {
 		color: var(--w-text-secondary);
 	}
-	.error { color: var(--nb-danger, #b3261e); }
+	.error { color: var(--ld-danger, #b3261e); }
 
 	/* Info block */
 	.info-block {
@@ -494,7 +494,7 @@ function methodVariant(method: string): string {
 	}
 
 	/* Layout-only additions to the design system's badge — semantic hues come
-	 * from the nb-badge variants picked in methodVariant(). */
+	 * from the ld-badge variants picked in methodVariant(). */
 	.method-badge {
 		flex-shrink: 0;
 		min-width: 56px;

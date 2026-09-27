@@ -88,15 +88,15 @@ importers:
 
   packages/embed:
     dependencies:
+      '@lepid-labs/styles':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@lepid-labs/weft-core':
         specifier: workspace:*
         version: link:../core
       '@lepid-labs/weft-ui':
         specifier: workspace:*
         version: link:../ui
-      '@nazuraki/styles':
-        specifier: ^0.3.0
-        version: 0.3.0
       minisearch:
         specifier: ^7.0.0
         version: 7.2.0
@@ -137,12 +137,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@lepid-labs/styles':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@lepid-labs/weft-core':
         specifier: workspace:*
         version: link:../core
-      '@nazuraki/styles':
-        specifier: ^0.3.0
-        version: 0.3.0
       rehype-highlight:
         specifier: ^7.0.2
         version: 7.0.2
@@ -442,15 +442,15 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@lepid-labs/styles@1.0.2':
+    resolution: {integrity: sha512-FPLMS2CJgM+2Na++uzy/iwxMbvCKImyg8tVZa/+FnfLAu3AbezWce1nCLp8AH3i5lVv/kwo8Y+iGk3Ex4+m9pw==}
+
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
     engines: {node: ^22.20 || ^24.12 || >=25}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
-
-  '@nazuraki/styles@0.3.0':
-    resolution: {integrity: sha512-yIYmRkMMHc+UPnOcWaLA/J77Zjhny2iwgJUB423AwlehX8of392d8SLOmqKx3XhXEVUTV+KRcEF4KJniJbzh/Q==}
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
@@ -1719,10 +1719,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@lepid-labs/styles@1.0.2': {}
+
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
-
-  '@nazuraki/styles@0.3.0': {}
 
   '@polka/url@1.0.0-next.29': {}
 

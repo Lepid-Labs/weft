@@ -14,10 +14,10 @@
  *             Weft declares a public name, a host can no longer set it from an
  *             ancestor — which is the only place the docs tell them to set it.
  *
- *   --nb-*    THE DESIGN SYSTEM. Declared by @nazuraki/styles under
- *             `[data-nb-style="<theme>"]` guards — never by Weft (styles.test
+ *   --ld-*    THE DESIGN SYSTEM. Declared by @lepid-labs/styles under
+ *             `[data-ld-style="<theme>"]` guards — never by Weft (styles.test
  *             pins that). Which theme's values apply is decided by the
- *             `data-nb-style` attribute Weft sets on its scope root (and on a
+ *             `data-ld-style` attribute Weft sets on its scope root (and on a
  *             per-document override element inside it).
  *
  *   --w-*     PRIVATE. Declared here and nowhere else, read at every use site.
@@ -35,8 +35,8 @@
  * standalone app carries `weft-scope` on `<html>`, and an embedded mount
  * matches on its own root.
  *
- * `color-scheme` is deliberately absent: the active @nazuraki/styles theme
- * declares it on the same `data-nb-style` element, which in the standalone
+ * `color-scheme` is deliberately absent: the active @lepid-labs/styles theme
+ * declares it on the same `data-ld-style` element, which in the standalone
  * app is the root — exactly where scrollbar rendering and the pre-paint
  * canvas colour read it from.
  */
@@ -47,35 +47,35 @@
 
 	--w-font-sans: var(
 		--weft-font-sans,
-		var(--nb-font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)
+		var(--ld-font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)
 	);
-	--w-font-heading: var(--weft-font-heading, var(--nb-font-display, sans-serif));
+	--w-font-heading: var(--weft-font-heading, var(--ld-font-display, sans-serif));
 	--w-font-mono: var(
 		--weft-font-mono,
-		var(--nb-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)
+		var(--ld-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)
 	);
 
 	/* The literals are the pre-conversion light palette, kept as the final
 	 * fallback so a themeless mount still renders legibly. */
-	--w-bg: var(--weft-color-bg, var(--nb-bg, #fef7ff));
-	--w-bg-secondary: var(--weft-color-bg-secondary, var(--nb-bg-blend, #f4eff4));
-	--w-bg-elevated: var(--weft-color-bg-elevated, var(--nb-surface, #ece6f0));
-	--w-border: var(--weft-color-border, var(--nb-border, #cac4d0));
-	--w-border-subtle: var(--weft-color-border-subtle, var(--nb-border, #e6e0e9));
-	--w-text: var(--weft-color-text, var(--nb-on-surface, #1c1b1f));
-	--w-text-secondary: var(--weft-color-text-secondary, var(--nb-faint, #49454f));
-	--w-link: var(--weft-color-link, var(--nb-primary, #6750a4));
-	--w-link-hover: var(--weft-color-link-hover, var(--nb-accent, #4f378a));
-	--w-accent: var(--weft-color-accent, var(--nb-primary, #6750a4));
-	--w-accent-subtle: var(--weft-color-accent-subtle, var(--nb-primary-glow, #eaddff));
-	--w-code-keyword: var(--weft-code-keyword, var(--nb-code-keyword, #6750a4));
-	--w-code-string: var(--weft-code-string, var(--nb-code-string, #2e7d32));
-	--w-code-number: var(--weft-code-number, var(--nb-code-number, #b45309));
-	--w-code-comment: var(--weft-code-comment, var(--nb-code-comment, #6b6b74));
-	--w-code-function: var(--weft-code-function, var(--nb-code-function, #1565c0));
-	--w-code-variable: var(--weft-code-variable, var(--nb-code-variable, #ad1457));
-	--w-code-type: var(--weft-code-type, var(--nb-code-type, #00695c));
-	--w-code-meta: var(--weft-code-meta, var(--nb-code-meta, #49454f));
+	--w-bg: var(--weft-color-bg, var(--ld-bg, #fef7ff));
+	--w-bg-secondary: var(--weft-color-bg-secondary, var(--ld-bg-blend, #f4eff4));
+	--w-bg-elevated: var(--weft-color-bg-elevated, var(--ld-surface, #ece6f0));
+	--w-border: var(--weft-color-border, var(--ld-border, #cac4d0));
+	--w-border-subtle: var(--weft-color-border-subtle, var(--ld-border, #e6e0e9));
+	--w-text: var(--weft-color-text, var(--ld-on-surface, #1c1b1f));
+	--w-text-secondary: var(--weft-color-text-secondary, var(--ld-faint, #49454f));
+	--w-link: var(--weft-color-link, var(--ld-primary, #6750a4));
+	--w-link-hover: var(--weft-color-link-hover, var(--ld-accent, #4f378a));
+	--w-accent: var(--weft-color-accent, var(--ld-primary, #6750a4));
+	--w-accent-subtle: var(--weft-color-accent-subtle, var(--ld-primary-glow, #eaddff));
+	--w-code-keyword: var(--weft-code-keyword, var(--ld-code-keyword, #6750a4));
+	--w-code-string: var(--weft-code-string, var(--ld-code-string, #2e7d32));
+	--w-code-number: var(--weft-code-number, var(--ld-code-number, #b45309));
+	--w-code-comment: var(--weft-code-comment, var(--ld-code-comment, #6b6b74));
+	--w-code-function: var(--weft-code-function, var(--ld-code-function, #1565c0));
+	--w-code-variable: var(--weft-code-variable, var(--ld-code-variable, #ad1457));
+	--w-code-type: var(--weft-code-type, var(--ld-code-type, #00695c));
+	--w-code-meta: var(--weft-code-meta, var(--ld-code-meta, #49454f));
 }
 
 /*

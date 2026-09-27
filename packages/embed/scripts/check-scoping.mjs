@@ -64,20 +64,20 @@ function selectorsIn(css) {
 
 /**
  * Svelte emits `.svelte-<hash>` in this build; anything Weft owns carries one
- * of those or `.weft-scope`. `[data-nb-style` marks a @nazuraki/styles rule —
+ * of those or `.weft-scope`. `[data-ld-style` marks a @lepid-labs/styles rule —
  * guarded by an attribute only Weft's own containers carry, so it cannot
  * reach host markup either.
  */
-const SCOPED = /\.weft-scope|\.svelte-[\w-]+|\[data-nb-style/;
+const SCOPED = /\.weft-scope|\.svelte-[\w-]+|\[data-ld-style/;
 
 const source = readFileSync(CSS, "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 const badKeyframes = [...source.matchAll(KEYFRAMES)]
 	.map((m) => m[1])
-	.filter((name) => !/^(weft-|nb-|svelte-)/.test(name));
+	.filter((name) => !/^(weft-|ld-|svelte-)/.test(name));
 if (badKeyframes.length) {
 	console.error(
-		`weft: keyframe name(s) in dist/weft.css are not namespaced (weft-/nb-/svelte-): ${badKeyframes.join(", ")}\n`
+		`weft: keyframe name(s) in dist/weft.css are not namespaced (weft-/ld-/svelte-): ${badKeyframes.join(", ")}\n`
 	);
 	process.exit(1);
 }

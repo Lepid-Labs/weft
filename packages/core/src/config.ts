@@ -165,7 +165,7 @@ function validateUserConfig(raw: unknown, file: string): UserConfig {
 
 /**
  * Shape only: a name, or a {dark, light} pair. Names are checked by the UI
- * (and the CLI, before it serves) against the installed @nazuraki/styles
+ * (and the CLI, before it serves) against the installed @lepid-labs/styles
  * manifest — core validating them would pin the theme roster to a core
  * release and defeat `styleUrl`. `source` names where the value came from
  * for the error: a config file, or a CLI flag.

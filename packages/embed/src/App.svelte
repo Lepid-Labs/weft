@@ -18,7 +18,7 @@ interface Props {
 let { config }: Props = $props();
 
 // The theme attributes land on this mount's own container: on a host's
-// documentElement they would push --nb-* tokens and a real color-scheme onto
+// documentElement they would push --ld-* tokens and a real color-scheme onto
 // a page Weft does not own.
 let scopeEl: HTMLElement | undefined = $state();
 const stylePair = resolveStylePair(config.style);
@@ -96,6 +96,6 @@ load();
 		color: var(--w-text-secondary, #656d76);
 	}
 	.weft-load-error {
-		color: var(--nb-danger, #b3261e);
+		color: var(--ld-danger, #b3261e);
 	}
 </style>

@@ -93,7 +93,7 @@ function handleKeydown(e: KeyboardEvent) {
 				</span>
 			</span>
 				{/if}
-				<button class="nb-btn search-trigger" onclick={() => (showSearch = true)}>
+				<button class="ld-btn search-trigger" onclick={() => (showSearch = true)}>
 					Search
 					<kbd>⌘K</kbd>
 				</button>
@@ -118,7 +118,7 @@ function handleKeydown(e: KeyboardEvent) {
 	<main
 		class="main"
 		data-theme={theme.docOverride ?? undefined}
-		data-nb-style={theme.docOverride ? theme.styleFor(theme.docOverride) : undefined}
+		data-ld-style={theme.docOverride ? theme.styleFor(theme.docOverride) : undefined}
 	>
 		{#if currentNode}
 			<DocView

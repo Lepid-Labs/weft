@@ -1,5 +1,5 @@
 <script lang="ts">
-import "@nazuraki/styles/all";
+import "@lepid-labs/styles/all";
 import "../app.css";
 import "../app-page.css";
 import { WEFT_CLIENT_KEY } from "$lib/client.js";
@@ -22,7 +22,7 @@ let pair = $derived(resolveStylePair(data.style ?? undefined));
 // Fonts for both halves up front, so the runtime toggle never fetches.
 let fontUrls = $derived(fontsFor([pair.dark, pair.light]));
 
-// The escape hatch: a configured name the installed @nazuraki/styles does not
+// The escape hatch: a configured name the installed @lepid-labs/styles does not
 // know is served from styleUrl instead of the bundle. The stylesheet link is
 // emitted here (SSR, no flash); its fonts are fetched from the remote
 // manifest by the style-loader on the client.

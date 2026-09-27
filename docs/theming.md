@@ -1,7 +1,7 @@
 # Theming
 
 Weft's look comes from the [ui-std-lib](https://github.com/nazuraki/ui-std-lib)
-design system (`@nazuraki/styles`). A **style** is one of its themes; Weft
+design system (`@lepid-labs/styles`). A **style** is one of its themes; Weft
 bundles every theme the installed package ships and the manifest that
 describes them, so styles are picked by name.
 
@@ -64,10 +64,10 @@ Every visual property resolves through three layers, first match wins:
 
 1. **`--weft-*`** — the host's input (see the theming contract in
    [usage.md](usage.md)). Weft only ever reads these.
-2. **`--nb-*`** — the active style's design tokens, declared by
-   `@nazuraki/styles` under `[data-nb-style="<theme>"]` guards. Weft sets that
+2. **`--ld-*`** — the active style's design tokens, declared by
+   `@lepid-labs/styles` under `[data-ld-style="<theme>"]` guards. Weft sets that
    attribute on its scope root (and per-doc override elements) and never
-   declares an `--nb-*` value itself.
+   declares an `--ld-*` value itself.
 3. A built-in literal, so a mount with no style attribute and no host input
    still renders.
 
@@ -94,5 +94,5 @@ palette rather than refusing to start.
 
 Themes do not bundle fonts. The standalone app emits the Google Fonts links
 for the configured pair straight from the styles manifest. Embed hosts add
-the links themselves (URLs in `@nazuraki/styles/manifest`) — except
+the links themselves (URLs in `@lepid-labs/styles/manifest`) — except
 `styleUrl` themes, whose fonts are injected from the remote manifest.

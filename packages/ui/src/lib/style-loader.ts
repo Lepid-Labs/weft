@@ -1,10 +1,10 @@
 /**
  * The styleUrl escape hatch: load a ui-std-lib theme the installed
- * @nazuraki/styles package does not know, from a base URL serving the styles
+ * @lepid-labs/styles package does not know, from a base URL serving the styles
  * layout (`<base>/manifest.json`, `<base>/<name>/index.css`) — e.g. a pinned
  * jsDelivr `.../styles` path.
  *
- * Everything lands in `document.head`: theme CSS is guarded by data-nb-style
+ * Everything lands in `document.head`: theme CSS is guarded by data-ld-style
  * rather than scoped to an element, so a <link> is the only way in. Failures
  * warn and leave the mount on its fallback palette — a docs reader with
  * default colors beats one that refuses to render because a CDN blipped.

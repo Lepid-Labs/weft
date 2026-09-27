@@ -115,7 +115,7 @@ function handleNavigate(id: string, hash?: string) {
 <div
 	class="weft-scope weft-doc"
 	data-theme={inheritedTheme ?? undefined}
-	data-nb-style={activeStyle}
+	data-ld-style={activeStyle}
 	bind:this={root}
 >
 	{#if currentNode}

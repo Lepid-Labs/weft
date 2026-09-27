@@ -16,7 +16,7 @@ export interface ThemeInitOptions {
 	/**
 	 * Element the attributes land on. The standalone app owns its page, so it
 	 * defaults to `<html>`; an embed passes its own scope container — putting
-	 * `data-nb-style` on a host's root would push theme tokens (and a real
+	 * `data-ld-style` on a host's root would push theme tokens (and a real
 	 * `color-scheme`) onto a page Weft does not own.
 	 */
 	root?: HTMLElement;
@@ -60,8 +60,8 @@ function createThemeStore() {
 		const el = target ?? document.documentElement;
 		el.setAttribute("data-theme", theme);
 		const style = stylePair[theme];
-		if (style) el.setAttribute("data-nb-style", style);
-		else el.removeAttribute("data-nb-style");
+		if (style) el.setAttribute("data-ld-style", style);
+		else el.removeAttribute("data-ld-style");
 	}
 
 	function init(options?: ThemeInitOptions) {

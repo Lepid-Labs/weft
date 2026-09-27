@@ -1,7 +1,7 @@
 /**
  * A ui-std-lib style selection: one theme name, or a scheme pair the UI's
  * light/dark toggle switches between. Names are validated by the UI against
- * the installed @nazuraki/styles manifest (core stays dependency-free, and a
+ * the installed @lepid-labs/styles manifest (core stays dependency-free, and a
  * theme newer than the installed set is reachable via `styleUrl`).
  */
 export type StyleConfig = string | { dark: string; light: string };

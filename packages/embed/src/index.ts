@@ -9,9 +9,9 @@ import DocMountRoot from "./DocMountRoot.svelte";
 import { createDocState } from "./doc-state.svelte.js";
 
 // Every ui-std-lib theme, folded into dist/weft.css. Safe in a host page:
-// each rule is guarded by data-nb-style, which only Weft's own containers
+// each rule is guarded by data-ld-style, which only Weft's own containers
 // carry.
-import "@nazuraki/styles/all";
+import "@lepid-labs/styles/all";
 
 export type { WeftClient } from "$lib/client.js";
 
