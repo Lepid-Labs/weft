@@ -4,7 +4,7 @@ type Theme = "light" | "dark";
 
 /**
  * Scheme and style are two axes with one knob. The config's style pair maps
- * each scheme to a ui-std-lib theme name; the user's choice (and localStorage)
+ * each scheme to a lepid-design theme name; the user's choice (and localStorage)
  * is only ever the SCHEME. Storing the style name instead would let a stale
  * preference pin a theme the config no longer names — config decides styles,
  * the user decides light or dark.

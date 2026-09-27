@@ -14,7 +14,7 @@ setContext(WEFT_CLIENT_KEY, new ApiClient());
 
 let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
-// The pair of ui-std-lib themes this deployment renders in. The metas below
+// The pair of lepid-design themes this deployment renders in. The metas below
 // are the whole config channel to the pre-paint script and the theme store —
 // an absent half means that scheme does not exist here (toggle hidden).
 let pair = $derived(resolveStylePair(data.style ?? undefined));

@@ -36,8 +36,8 @@ The file is validated at load time: wrong types and bad enum values fail with th
 | `siteTitle` | `string` | — | Site name shown in the header, and used in `og:site_name` and the page title (`Doc — Site`). The header reads "Weft" when unset |
 | `siteUrl` | `string` | — | Canonical base URL (e.g. `https://docs.example.com`). Required for absolute `og:image` URLs |
 | `ogImage` | `string` | — | Default `og:image`. Relative to project root or an absolute URL. Overridden per-document via frontmatter |
-| `style` | `string \| {dark, light}` | `{dark: luminous-precision, light: summer-cloud}` | ui-std-lib theme(s) the UI renders in. A pair follows the light/dark toggle; a single name fixes the scheme and hides it — see [theming.md](theming.md) |
-| `styleUrl` | `string` | — | Base URL serving ui-std-lib themes newer than the bundled set — see [theming.md](theming.md) |
+| `style` | `string \| {dark, light}` | `{dark: luminous-precision, light: summer-cloud}` | lepid-design theme(s) the UI renders in. A pair follows the light/dark toggle; a single name fixes the scheme and hides it — see [theming.md](theming.md) |
+| `styleUrl` | `string` | — | Base URL serving lepid-design themes newer than the bundled set — see [theming.md](theming.md) |
 | `defaultTheme` | `"light" \| "dark"` | system preference | Scheme applied on first visit before the user sets a preference. Ignored when `style` is a single fixed-scheme name |
 | `layout` | `"default" \| "reader"` | `"default"` | `"reader"` hides the linked-items sidebar for a cleaner reading experience |
 | `docOrder` | `string[]` | — | Explicit order for docs in the left-hand navigation. Filenames relative to `docsDir` |

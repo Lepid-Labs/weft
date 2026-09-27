@@ -1,6 +1,6 @@
 # Theming
 
-Weft's look comes from the [ui-std-lib](https://github.com/nazuraki/ui-std-lib)
+Weft's look comes from the [lepid-design](https://github.com/Lepid-Labs/lepid-design)
 design system (`@lepid-labs/styles`). A **style** is one of its themes; Weft
 bundles every theme the installed package ships and the manifest that
 describes them, so styles are picked by name.
@@ -74,15 +74,21 @@ Every visual property resolves through three layers, first match wins:
 The `--w-*` names in the stylesheet are the resolved internals — set the
 `--weft-*` name instead.
 
+## Page chrome
+
+The page itself is lepid-design's app shell, so each style brings its own chrome rather than recolouring Weft's: `ld-shell` (the style's page background, a sticky header, a sticky nav), `ld-shell__brand` showing `siteTitle`, `ld-sidenav` for the document tree (one section per project, its name as the heading, the current document marked `aria-current="page"`), `ld-btn` and `ld-icon-btn` for search and the theme toggle, and `ld-aside-layout` for the document with its linked items beside it. Below the design system's 48rem breakpoint the nav becomes a drawer behind the header's menu button.
+
+Hosts that embed the whole app get the same markup inside their container, which becomes the scroller; neon-butterfly's background artwork is left out of `weft.css` to keep the bundle small.
+
 ## Styles newer than the bundled set
 
-`styleUrl` names a base URL serving the ui-std-lib styles layout
+`styleUrl` names a base URL serving the lepid-design styles layout
 (`<base>/manifest.json`, `<base>/<name>/index.css`) — for example a pinned
 jsDelivr path:
 
 ```yaml
 style: some-future-theme
-styleUrl: https://cdn.jsdelivr.net/gh/nazuraki/ui-std-lib@v0.4.0/styles
+styleUrl: https://cdn.jsdelivr.net/gh/lepid-labs/lepid-design@v1.0.2/styles
 ```
 
 Names the bundled manifest knows come from the bundle regardless; only

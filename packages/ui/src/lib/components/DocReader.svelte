@@ -11,7 +11,7 @@ interface Props extends RenderOptions {
 	anchor?: string;
 	/** Show the linked-items sidebar. Off by default — the host asks for it. */
 	linkedItems?: boolean;
-	/** ui-std-lib style: a pair follows the mirrored host scheme; a single name is fixed. */
+	/** lepid-design style: a pair follows the mirrored host scheme; a single name is fixed. */
 	style?: StyleConfig;
 	/**
 	 * Where a link inside the document leads.

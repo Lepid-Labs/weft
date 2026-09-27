@@ -1,5 +1,5 @@
 /**
- * The styleUrl escape hatch: load a ui-std-lib theme the installed
+ * The styleUrl escape hatch: load a lepid-design theme the installed
  * @lepid-labs/styles package does not know, from a base URL serving the styles
  * layout (`<base>/manifest.json`, `<base>/<name>/index.css`) — e.g. a pinned
  * jsDelivr `.../styles` path.

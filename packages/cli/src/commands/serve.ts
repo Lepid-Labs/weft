@@ -73,12 +73,12 @@ export const serveCommand = command(
 			style: {
 				type: String,
 				description:
-					"ui-std-lib style: one theme name, or a dark/light pair (e.g. luminous-precision/summer-cloud); overrides the config",
+					"lepid-design style: one theme name, or a dark/light pair (e.g. luminous-precision/summer-cloud); overrides the config",
 			},
 			styleUrl: {
 				type: String,
 				description:
-					"Base URL serving ui-std-lib theme CSS and manifest.json, for a style newer than the bundled set",
+					"Base URL serving lepid-design theme CSS and manifest.json, for a style newer than the bundled set",
 			},
 		},
 	},

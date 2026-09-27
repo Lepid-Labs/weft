@@ -24,7 +24,7 @@ export function parseStyleFlag(value: string): StyleConfig {
 export type StyleRoster = Record<string, { scheme: "dark" | "light" }>;
 
 /**
- * Read the ui-std-lib manifest the UI was built against. The CLI does not
+ * Read the lepid-design manifest the UI was built against. The CLI does not
  * depend on @lepid-labs/styles itself — it is the UI's dependency — so resolve
  * it from the UI package's directory, which works under both pnpm's nested
  * layout and npm's hoisted one.

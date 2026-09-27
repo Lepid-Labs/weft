@@ -216,7 +216,7 @@ const LOCAL_KEYS = new Set(["repos", "style", "styleUrl"]);
 /**
  * Read `weft.config.local.yaml`, which may set only per-machine options:
  * `repos` (where checkouts live), and `style`/`styleUrl` (one developer
- * previewing the corpus in a different ui-std-lib theme). Nothing else, so an
+ * previewing the corpus in a different lepid-design theme). Nothing else, so an
  * option quietly diverging from the committed config cannot hide there.
  * `repos` entries override committed ones per identity; `style`/`styleUrl`
  * replace the committed values outright.
