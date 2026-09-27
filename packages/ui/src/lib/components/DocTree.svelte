@@ -1,5 +1,6 @@
 <script lang="ts">
 import { type TreeNode, buildGroups, buildTree } from "$lib/doc-tree.js";
+import { nodeIdToPath } from "$lib/utils/paths.js";
 import type { WeftNode, WeftProjectRef } from "@lepid-labs/weft-core";
 
 interface Props {
@@ -17,101 +18,66 @@ let grouped = $derived((projects?.length ?? 0) > 1);
 let visible = $derived(nodes.filter((node) => !node.hiddenFromNav));
 let tree = $derived(buildTree(visible));
 let groups = $derived(grouped ? buildGroups(visible, projects ?? []) : []);
+
+// Items are real links, so a modified click opens a tab; a plain click stays
+// in the app.
+function follow(e: MouseEvent, nodeId: string) {
+	if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+	e.preventDefault();
+	onnavigate(nodeId);
+}
 </script>
 
+<!-- The design system's side nav: a section per project with its name as the
+     heading, documents as items, the current one marked aria-current. -->
 {#snippet treeNode(node: TreeNode, depth: number)}
 	{#if node.nodeId}
-		<button
-			class="tree-item"
-			class:active={currentNodeId === node.nodeId}
-			style="padding-left: {8 + depth * 16}px"
-			onclick={() => onnavigate(node.nodeId!)}
+		<a
+			class="ld-sidenav__item"
+			href={nodeIdToPath(node.nodeId)}
+			aria-current={currentNodeId === node.nodeId ? "page" : undefined}
+			style:padding-inline-start={depth ? `${0.75 + depth * 0.75}rem` : undefined}
+			onclick={(e) => follow(e, node.nodeId!)}
 		>
-			{node.label}
-		</button>
+			<span class="ld-sidenav__label">{node.label}</span>
+		</a>
 	{:else}
-		<div class="tree-folder" style="padding-left: {8 + depth * 16}px">
+		<div class="tree-folder" style:padding-inline-start={`${0.75 + depth * 0.75}rem`}>
 			{node.label}
 		</div>
 		{#each node.children as child}
 			{@render treeNode(child, depth + 1)}
 		{/each}
 	{/if}
-
-	{#if node.nodeId}
-		<!-- Leaf nodes don't render children -->
-	{:else}
-		<!-- Children already rendered above -->
-	{/if}
 {/snippet}
 
-<nav class="doc-tree">
+<nav class="ld-sidenav" aria-label="Documents">
 	{#if grouped}
 		{#each groups as group}
-			<div class="project-header">{group.name}</div>
-			{#each group.tree as node}
-				{@render treeNode(node, 0)}
-			{/each}
+			<div class="ld-sidenav__section" role="group" aria-labelledby="weft-nav-{group.slug}">
+				<div class="ld-sidenav__heading" id="weft-nav-{group.slug}">{group.name}</div>
+				{#each group.tree as node}
+					{@render treeNode(node, 0)}
+				{/each}
+			</div>
 		{/each}
 	{:else}
-		{#each tree as node}
-			{@render treeNode(node, 0)}
-		{/each}
+		<div class="ld-sidenav__section">
+			{#each tree as node}
+				{@render treeNode(node, 0)}
+			{/each}
+		</div>
 	{/if}
 </nav>
 
 <style>
-	.doc-tree {
-		display: flex;
-		flex-direction: column;
-		font-size: 13px;
-	}
-	.tree-item {
-		display: block;
-		width: 100%;
-		text-align: left;
-		background: none;
-		border: none;
-		padding: 5px 14px;
-		cursor: pointer;
-		color: var(--w-text-secondary);
-		border-radius: 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		font-size: 13px;
-		transition: color 0.1s;
-	}
-	.tree-item:hover {
-		background: var(--w-accent-subtle);
-		color: var(--w-text);
-	}
-	.tree-item.active {
-		background: var(--w-accent-subtle);
-		color: var(--w-accent);
-		font-weight: 500;
-	}
-	.project-header {
-		padding: 4px 14px;
-		font-weight: 600;
-		color: var(--w-text);
-		font-size: 12px;
-		letter-spacing: 0.02em;
-		margin-top: 16px;
-		border-bottom: 1px solid var(--w-border);
-		padding-bottom: 6px;
-		margin-bottom: 4px;
-	}
-	.project-header:first-child {
-		margin-top: 0;
-	}
+	/* A folder inside a project: the design system has no nested nav, so a
+	   subfolder is a quiet label and its documents indent beneath it. */
 	.tree-folder {
-		padding: 4px 14px;
-		font-weight: 600;
-		color: var(--w-text-secondary);
+		padding-block: 8px 2px;
 		font-size: 11px;
+		color: var(--w-text-secondary);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		margin-top: 12px;
 	}
 </style>

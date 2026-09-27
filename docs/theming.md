@@ -1,7 +1,7 @@
 # Theming
 
-Weft's look comes from the [ui-std-lib](https://github.com/nazuraki/ui-std-lib)
-design system (`@nazuraki/styles`). A **style** is one of its themes; Weft
+Weft's look comes from the [lepid-design](https://github.com/Lepid-Labs/lepid-design)
+design system (`@lepid-labs/styles`). A **style** is one of its themes; Weft
 bundles every theme the installed package ships and the manifest that
 describes them, so styles are picked by name.
 
@@ -64,25 +64,31 @@ Every visual property resolves through three layers, first match wins:
 
 1. **`--weft-*`** — the host's input (see the theming contract in
    [usage.md](usage.md)). Weft only ever reads these.
-2. **`--nb-*`** — the active style's design tokens, declared by
-   `@nazuraki/styles` under `[data-nb-style="<theme>"]` guards. Weft sets that
+2. **`--ld-*`** — the active style's design tokens, declared by
+   `@lepid-labs/styles` under `[data-ld-style="<theme>"]` guards. Weft sets that
    attribute on its scope root (and per-doc override elements) and never
-   declares an `--nb-*` value itself.
+   declares an `--ld-*` value itself.
 3. A built-in literal, so a mount with no style attribute and no host input
    still renders.
 
 The `--w-*` names in the stylesheet are the resolved internals — set the
 `--weft-*` name instead.
 
+## Page chrome
+
+The page itself is lepid-design's app shell, so each style brings its own chrome rather than recolouring Weft's: `ld-shell` (the style's page background, a sticky header, a sticky nav), `ld-shell__brand` showing `siteTitle`, `ld-sidenav` for the document tree (one section per project, its name as the heading, the current document marked `aria-current="page"`), `ld-btn` and `ld-icon-btn` for search and the theme toggle, and `ld-aside-layout` for the document with its linked items beside it. Below the design system's 48rem breakpoint the nav becomes a drawer behind the header's menu button.
+
+Hosts that embed the whole app get the same markup inside their container, which becomes the scroller; neon-butterfly's background artwork is left out of `weft.css` to keep the bundle small.
+
 ## Styles newer than the bundled set
 
-`styleUrl` names a base URL serving the ui-std-lib styles layout
+`styleUrl` names a base URL serving the lepid-design styles layout
 (`<base>/manifest.json`, `<base>/<name>/index.css`) — for example a pinned
 jsDelivr path:
 
 ```yaml
 style: some-future-theme
-styleUrl: https://cdn.jsdelivr.net/gh/nazuraki/ui-std-lib@v0.4.0/styles
+styleUrl: https://cdn.jsdelivr.net/gh/lepid-labs/lepid-design@v1.0.2/styles
 ```
 
 Names the bundled manifest knows come from the bundle regardless; only
@@ -94,5 +100,5 @@ palette rather than refusing to start.
 
 Themes do not bundle fonts. The standalone app emits the Google Fonts links
 for the configured pair straight from the styles manifest. Embed hosts add
-the links themselves (URLs in `@nazuraki/styles/manifest`) — except
+the links themselves (URLs in `@lepid-labs/styles/manifest`) — except
 `styleUrl` themes, whose fonts are injected from the remote manifest.

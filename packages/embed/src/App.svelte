@@ -18,7 +18,7 @@ interface Props {
 let { config }: Props = $props();
 
 // The theme attributes land on this mount's own container: on a host's
-// documentElement they would push --nb-* tokens and a real color-scheme onto
+// documentElement they would push --ld-* tokens and a real color-scheme onto
 // a page Weft does not own.
 let scopeEl: HTMLElement | undefined = $state();
 const stylePair = resolveStylePair(config.style);
@@ -86,8 +86,18 @@ load();
 </div>
 
 <style>
+	/* The design system's shell assumes it owns the page: a sticky header, a nav
+	   as tall as the viewport, a fixed drawer when narrow. Inside a host's
+	   container the container is the scroller and the containing block, so
+	   those stick and position against it instead. */
 	.weft-app {
 		height: 100%;
+		overflow: auto;
+		contain: layout;
+	}
+	.weft-app :global(.ld-shell__nav) {
+		block-size: auto;
+		align-self: start;
 	}
 	.weft-loading,
 	.weft-load-error {
@@ -96,6 +106,6 @@ load();
 		color: var(--w-text-secondary, #656d76);
 	}
 	.weft-load-error {
-		color: var(--nb-danger, #b3261e);
+		color: var(--ld-danger, #b3261e);
 	}
 </style>

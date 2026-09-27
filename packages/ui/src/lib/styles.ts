@@ -1,12 +1,12 @@
-import type { StyleConfig } from "@lepid-labs/weft-core/browser";
 /**
- * The ui-std-lib theme roster, read from the installed @nazuraki/styles
+ * The lepid-design theme roster, read from the installed @lepid-labs/styles
  * manifest — the single source of theme names, schemes, and webfont links.
  * Nothing here hardcodes a theme list, so a styles-package upgrade is the
  * whole cost of adopting a new theme, and `styleUrl` covers one the installed
  * package does not know yet.
  */
-import styleManifest from "@nazuraki/styles/manifest";
+import styleManifest from "@lepid-labs/styles/manifest";
+import type { StyleConfig } from "@lepid-labs/weft-core/browser";
 
 interface StyleManifest {
 	contract: number;

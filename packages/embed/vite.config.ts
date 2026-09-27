@@ -20,7 +20,7 @@ export default defineConfig({
 		alias: [
 			// Resolve SvelteKit's $lib alias to the UI package's lib directory
 			{ find: "$lib", replacement: path.resolve(__dirname, "../ui/src/lib") },
-			// neon-butterfly's .nb-bg page artwork is a 1.2MB PNG, and lib-mode
+			// neon-butterfly's .ld-bg page artwork is a 1.2MB PNG, and lib-mode
 			// Vite inlines every CSS asset as a data URI — shipping it in
 			// dist/weft.css for a page treatment no embed renders. A transparent
 			// pixel keeps the rule valid; the blend color still paints.

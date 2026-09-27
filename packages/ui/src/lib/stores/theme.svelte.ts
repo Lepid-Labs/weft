@@ -4,7 +4,7 @@ type Theme = "light" | "dark";
 
 /**
  * Scheme and style are two axes with one knob. The config's style pair maps
- * each scheme to a ui-std-lib theme name; the user's choice (and localStorage)
+ * each scheme to a lepid-design theme name; the user's choice (and localStorage)
  * is only ever the SCHEME. Storing the style name instead would let a stale
  * preference pin a theme the config no longer names — config decides styles,
  * the user decides light or dark.
@@ -16,7 +16,7 @@ export interface ThemeInitOptions {
 	/**
 	 * Element the attributes land on. The standalone app owns its page, so it
 	 * defaults to `<html>`; an embed passes its own scope container — putting
-	 * `data-nb-style` on a host's root would push theme tokens (and a real
+	 * `data-ld-style` on a host's root would push theme tokens (and a real
 	 * `color-scheme`) onto a page Weft does not own.
 	 */
 	root?: HTMLElement;
@@ -60,8 +60,8 @@ function createThemeStore() {
 		const el = target ?? document.documentElement;
 		el.setAttribute("data-theme", theme);
 		const style = stylePair[theme];
-		if (style) el.setAttribute("data-nb-style", style);
-		else el.removeAttribute("data-nb-style");
+		if (style) el.setAttribute("data-ld-style", style);
+		else el.removeAttribute("data-ld-style");
 	}
 
 	function init(options?: ThemeInitOptions) {

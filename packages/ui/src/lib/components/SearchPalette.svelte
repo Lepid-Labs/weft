@@ -101,7 +101,7 @@ function handleBackdropClick(e: MouseEvent) {
 		/* The active theme's page color at low alpha, blurred — the design
 		 * system's dialog-backdrop treatment, expressed with its tokens. */
 		background: color-mix(in srgb, var(--w-bg) 55%, transparent);
-		backdrop-filter: blur(calc(var(--nb-blur, 12px) / 2));
+		backdrop-filter: blur(calc(var(--ld-blur, 12px) / 2));
 		display: flex;
 		justify-content: center;
 		padding-top: 120px;
@@ -110,7 +110,7 @@ function handleBackdropClick(e: MouseEvent) {
 	.palette {
 		background: var(--w-bg-elevated);
 		border: 1px solid var(--w-border);
-		border-radius: var(--nb-radius-lg, 12px);
+		border-radius: var(--ld-radius-lg, 12px);
 		width: 560px;
 		max-height: 400px;
 		overflow: hidden;
@@ -132,7 +132,7 @@ function handleBackdropClick(e: MouseEvent) {
 		font-family: var(--w-font-sans);
 	}
 	.search-input:focus {
-		border-bottom-color: var(--nb-accent, var(--w-accent));
+		border-bottom-color: var(--ld-accent, var(--w-accent));
 	}
 	.results {
 		list-style: none;

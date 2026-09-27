@@ -58,7 +58,7 @@ describe("app.css (shipped in the embed bundle)", () => {
 
 /**
  * The three-namespace contract. `--weft-*` is the host's input and Weft only
- * ever reads it; `--nb-*` belongs to @nazuraki/styles and Weft only ever reads
+ * ever reads it; `--ld-*` belongs to @lepid-labs/styles and Weft only ever reads
  * it; `--w-*` is private and declared in `app.css` alone, each one resolving
  * host override → active theme token → literal fallback.
  */
@@ -70,9 +70,9 @@ describe("the public/theme/private token split", () => {
 		expect(tokens).toMatch(/var\(--weft-/);
 	});
 
-	it("never declares a design-system token — @nazuraki/styles owns --nb-*", () => {
+	it("never declares a design-system token — @lepid-labs/styles owns --ld-*", () => {
 		const offenders = [resolve(SRC, "app.css"), ...styleBearingFiles()].filter((file) =>
-			/--nb-[\w-]+\s*:[^;]*;/.test(readFileSync(file, "utf-8").replace(/var\([^)]*\)/g, ""))
+			/--ld-[\w-]+\s*:[^;]*;/.test(readFileSync(file, "utf-8").replace(/var\([^)]*\)/g, ""))
 		);
 		expect(offenders).toEqual([]);
 	});
@@ -83,7 +83,7 @@ describe("the public/theme/private token split", () => {
 	});
 
 	it("chains every color and font through the theme layer", () => {
-		// Each --w-* color/font declaration must read a --nb-* token somewhere in
+		// Each --w-* color/font declaration must read a --ld-* token somewhere in
 		// its fallback chain — otherwise a theme swap silently misses it. Layout
 		// lengths (widths, heights) are Weft's own and exempt.
 		const decls = [...tokens.matchAll(/(--w-[\w-]+)\s*:([^;]+);/g)];
@@ -91,7 +91,7 @@ describe("the public/theme/private token split", () => {
 		const exempt = /^--w-(lhn-width|rhs-width|header-height)$/;
 		const missing = decls
 			.filter(([, name]) => !exempt.test(name))
-			.filter(([, , value]) => !value.includes("var(--nb-"))
+			.filter(([, , value]) => !value.includes("var(--ld-"))
 			.map(([, name]) => name);
 		expect(missing).toEqual([]);
 	});
@@ -107,8 +107,8 @@ describe("the public/theme/private token split", () => {
 });
 
 /**
- * Scheme now arrives through which @nazuraki/styles theme block is active
- * (`data-nb-style`), not through weft-owned `data-theme` token blocks. What
+ * Scheme now arrives through which @lepid-labs/styles theme block is active
+ * (`data-ld-style`), not through weft-owned `data-theme` token blocks. What
  * remains pinned: Weft must never key token declarations off a bare attribute
  * selector that could match the host's markup.
  */
@@ -120,7 +120,7 @@ describe("theme attributes", () => {
 	});
 
 	it("keys nothing off a bare host-reachable attribute selector", () => {
-		expect(tokens).not.toMatch(/(^|\})\s*\[data-(theme|nb-style)[^\]]*\]\s*[,{]/);
+		expect(tokens).not.toMatch(/(^|\})\s*\[data-(theme|ld-style)[^\]]*\]\s*[,{]/);
 	});
 });
 
@@ -143,14 +143,14 @@ describe("the standalone app", () => {
 		// app resolves every one of them to nothing — a failure no CSS-only check
 		// can see, because the mistake is in an HTML file.
 		expect(html).toMatch(/<html[^>]*\bclass="[^"]*\bweft-scope\b/);
-		expect(html).toMatch(/<html[^>]*\bclass="[^"]*\bnb-bg\b/);
+		expect(html).toMatch(/<html[^>]*\bclass="[^"]*\bld-bg\b/);
 	});
 
 	it("pre-paints both the scheme and the theme attribute", () => {
 		// data-theme drives the doc-override contract and host mirroring;
-		// data-nb-style is what the design-system CSS actually keys off. Setting
+		// data-ld-style is what the design-system CSS actually keys off. Setting
 		// only one paints the wrong first frame.
 		expect(html).toMatch(/setAttribute\("data-theme"/);
-		expect(html).toMatch(/setAttribute\("data-nb-style"/);
+		expect(html).toMatch(/setAttribute\("data-ld-style"/);
 	});
 });

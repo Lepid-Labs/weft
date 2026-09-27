@@ -36,9 +36,12 @@ let {
 }: Props = $props();
 
 let showSearch = $state(false);
+// The nav is a drawer below the design system's breakpoint; the toggle only
+// shows there, since weft's nav has no icons to leave behind as a rail.
+let navOpen = $state(false);
 
 let readerMode = $derived(layout === "reader");
-
+let siteTitle = $derived(manifest.site?.siteTitle || "Weft");
 let currentNode = $derived(manifest.nodes.find((n) => n.id === currentNodeId) ?? null);
 
 $effect(() => {
@@ -49,8 +52,23 @@ $effect(() => {
 	theme.setDocOverride(currentNode?.theme ?? null);
 });
 
+$effect(() => {
+	const narrow = matchMedia("(max-width: 48rem)");
+	const close = () => (navOpen = false);
+	narrow.addEventListener("change", close);
+	return () => narrow.removeEventListener("change", close);
+});
+
 function handleNavigate(nodeId: string, anchor?: string) {
+	navOpen = false;
 	navigate(nodeIdToPath(nodeId) + (anchor ?? ""));
+}
+
+function goHome(e: MouseEvent) {
+	if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+	e.preventDefault();
+	navOpen = false;
+	navigate("/");
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -58,50 +76,60 @@ function handleKeydown(e: KeyboardEvent) {
 		e.preventDefault();
 		showSearch = !showSearch;
 	}
-	if (e.key === "Escape" && showSearch) {
-		showSearch = false;
+	if (e.key === "Escape") {
+		if (showSearch) showSearch = false;
+		else navOpen = false;
 	}
 }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="shell" class:reader={readerMode}>
-	<!-- Header bar -->
-	<header class="header">
-		<div class="header-left">
-			<span class="wordmark">{manifest.site?.siteTitle || "Weft"}</span>
-		</div>
-		<div class="header-center">
-			{#if currentNode}
-				<span class="doc-title">{currentNode.title}</span>
-			{/if}
-		</div>
-		<div class="header-right">
-				{#if theme.canToggle}
+<!-- The design system's app shell: it paints the theme's page background,
+     keeps the header and nav sticky, and turns the nav into a drawer when
+     narrow (data-ld-nav-open). -->
+<div class="ld-shell weft-shell" data-ld-nav-open={navOpen ? "" : undefined}>
+	<a class="ld-shell__skip" href="#weft-main">Skip to content</a>
+	<header class="ld-shell__header">
+		<button
+			type="button"
+			class="ld-shell__toggle"
+			aria-label="Toggle navigation"
+			aria-controls="weft-nav"
+			aria-expanded={navOpen}
+			onclick={() => (navOpen = !navOpen)}
+		>
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+		</button>
+		<a class="ld-shell__brand" href="/" onclick={goHome}><span>{siteTitle}</span></a>
+		<div class="ld-shell__actions">
+			{#if theme.canToggle}
 				<span class="theme-toggle-wrap">
-				<button
-					class="theme-toggle"
-					onclick={(e) => e.shiftKey || e.ctrlKey ? theme.toggleDocOverride() : theme.toggle()}
-					aria-label="Toggle light/dark mode"
-				>
-					{theme.current === "dark" ? "☀️" : "🌙"}
-				</button>
-				<span class="theme-tooltip">
-					Click to toggle &amp; save preference<br />
-					Shift/Ctrl+click to override this document
+					<button
+						type="button"
+						class="ld-icon-btn"
+						onclick={(e) => (e.shiftKey || e.ctrlKey ? theme.toggleDocOverride() : theme.toggle())}
+						aria-label="Toggle light/dark mode"
+					>
+						{#if theme.current === "dark"}
+							<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+						{:else}
+							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+						{/if}
+					</button>
+					<span class="theme-tooltip">
+						Click to toggle &amp; save preference<br />
+						Shift/Ctrl+click to override this document
+					</span>
 				</span>
-			</span>
-				{/if}
-				<button class="nb-btn search-trigger" onclick={() => (showSearch = true)}>
-					Search
-					<kbd>⌘K</kbd>
-				</button>
-			</div>
+			{/if}
+			<button type="button" class="ld-btn ld-btn--sm" onclick={() => (showSearch = true)}>
+				Search <kbd>⌘K</kbd>
+			</button>
+		</div>
 	</header>
 
-	<!-- Left-hand nav -->
-	<aside class="lhn">
+	<aside class="ld-shell__nav" id="weft-nav">
 		<DocTree
 			nodes={manifest.nodes}
 			projects={manifest.projects}
@@ -109,41 +137,47 @@ function handleKeydown(e: KeyboardEvent) {
 			{currentNodeId}
 		/>
 	</aside>
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions — Escape closes the drawer too -->
+	<div class="ld-shell__scrim" aria-hidden="true" onclick={() => (navOpen = false)}></div>
 
-	<!-- Main content -->
 	<!-- The per-doc override carries both axes: the scheme for anything keyed
 	     off data-theme, and the theme name whose token block restyles this
 	     subtree (tokens re-declare on this element, so they win over the
 	     root's by proximity, not source order). -->
 	<main
-		class="main"
+		class="ld-shell__main"
+		id="weft-main"
+		tabindex="-1"
 		data-theme={theme.docOverride ?? undefined}
-		data-nb-style={theme.docOverride ? theme.styleFor(theme.docOverride) : undefined}
+		data-ld-style={theme.docOverride ? theme.styleFor(theme.docOverride) : undefined}
 	>
-		{#if currentNode}
-			<DocView
-				nodeId={currentNode.id}
-				nodeType={currentNode.type}
-				{anchor}
-				edges={manifest.edges}
-				onnavigate={handleNavigate}
-				{remarkPlugins}
-				{rehypePlugins}
-				{extendSchema}
-			/>
-		{:else}
-			<p class="empty">No documents found.</p>
-		{/if}
+		<div class="ld-page ld-page--wide">
+			<div class="ld-aside-layout">
+				<article class="ld-aside-layout__main weft-doc">
+					{#if currentNode}
+						<DocView
+							nodeId={currentNode.id}
+							nodeType={currentNode.type}
+							{anchor}
+							edges={manifest.edges}
+							onnavigate={handleNavigate}
+							{remarkPlugins}
+							{rehypePlugins}
+							{extendSchema}
+						/>
+					{:else}
+						<p class="empty">No documents found.</p>
+					{/if}
+				</article>
+				<!-- Linked items (hidden in reader mode) -->
+				{#if !readerMode && currentNode}
+					<aside class="ld-aside-layout__aside weft-linked" aria-label="Linked items">
+						<LinkedItems nodeId={currentNode.id} {manifest} onnavigate={handleNavigate} />
+					</aside>
+				{/if}
+			</div>
+		</div>
 	</main>
-
-	<!-- Right-hand sidebar (hidden in reader mode) -->
-	{#if !readerMode}
-		<aside class="rhs">
-			{#if currentNode}
-				<LinkedItems nodeId={currentNode.id} {manifest} onnavigate={handleNavigate} />
-			{/if}
-		</aside>
-	{/if}
 </div>
 
 {#if showSearch}
@@ -157,77 +191,45 @@ function handleKeydown(e: KeyboardEvent) {
 {/if}
 
 <style>
-	.shell {
-		display: grid;
-		grid-template-columns: var(--w-lhn-width, 260px) 1fr var(--w-rhs-width, 300px);
-		grid-template-rows: var(--w-header-height, 48px) 1fr;
-		height: 100%;
-		overflow: hidden;
+	.weft-shell {
+		min-block-size: 100%;
 	}
-	.shell.reader {
-		grid-template-columns: var(--w-lhn-width, 260px) 1fr;
+	/* Wide: the nav is always there, so the toggle has nothing to do. The
+	   host's --weft-lhn-width sizes it; narrow, the drawer keeps its own width. */
+	@media (width > 48rem) {
+		.weft-shell .ld-shell__toggle {
+			display: none;
+		}
+		.weft-shell .ld-shell__nav {
+			inline-size: var(--w-lhn-width);
+		}
 	}
-
-	.header {
-		grid-column: 1 / -1;
-		display: flex;
-		align-items: center;
-		padding: 0 16px;
-		gap: 16px;
+	.weft-shell svg {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
 	}
-	.header-left {
-		width: calc(var(--w-lhn-width, 240px) - 32px);
-		flex-shrink: 0;
+	.ld-icon-btn > svg {
+		inline-size: 18px;
+		block-size: 18px;
 	}
-	.wordmark {
-		font-family: var(--w-font-heading, var(--w-font-sans));
-		font-weight: 600;
-		/* 13px, not 15: this was `0.9375rem` against a 14px base that `app-page.css`
-		   already set, so it rendered at 13.125px. Converting it to 15px would have
-		   been a silent 14% size change inside a commit that claimed to be a
-		   mechanical unit swap. */
-		font-size: 13px;
-		letter-spacing: 0.04em;
-		color: var(--w-accent);
-		text-transform: uppercase;
+	/* Anchors land below the sticky header, not under it. */
+	.weft-doc :global(:is(h1, h2, h3, h4, h5, h6)[id]) {
+		scroll-margin-top: calc(var(--ld-shell-top, 0px) + 1rem);
 	}
-	.header-center {
-		flex: 1;
-		min-width: 0;
+	.weft-doc {
+		max-inline-size: 52rem;
 	}
-	.doc-title {
-		font-size: 13px;
-		color: var(--w-text-secondary);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.header-right {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: 8px;
+	.weft-linked {
+		flex-basis: var(--w-rhs-width);
+		max-block-size: calc(100dvh - var(--ld-shell-top, 0px) - 2rem);
+		overflow-y: auto;
 	}
 	.theme-toggle-wrap {
 		position: relative;
 		display: flex;
 		align-items: center;
-	}
-	.theme-toggle {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 30px;
-		height: 30px;
-		border: 1px solid var(--w-border);
-		border-radius: 6px;
-		background: var(--w-bg-secondary);
-		cursor: pointer;
-		font-size: 14px;
-		line-height: 1;
-	}
-	.theme-toggle:hover {
-		border-color: var(--w-text-secondary);
 	}
 	.theme-tooltip {
 		display: none;
@@ -248,49 +250,11 @@ function handleKeydown(e: KeyboardEvent) {
 	.theme-toggle-wrap:hover .theme-tooltip {
 		display: block;
 	}
-	/* A design-system button, sized down to header chrome. */
-	.search-trigger {
-		padding: 4px 12px;
-		font-size: 12px;
-	}
-	.search-trigger kbd {
-		font-family: var(--w-font-sans);
+	kbd {
+		font-family: inherit;
 		font-size: 11px;
-		padding: 1px 4px;
-		border: 1px solid var(--w-border);
-		border-radius: 3px;
-		background: var(--w-bg);
+		opacity: 0.7;
 	}
-
-	.lhn {
-		grid-column: 1;
-		grid-row: 2;
-		overflow-y: auto;
-		padding: 12px 0;
-		min-width: 0;
-	}
-
-	.main {
-		grid-column: 2;
-		grid-row: 2;
-		overflow-y: auto;
-		padding: 24px 32px;
-		min-width: 0;
-		background: var(--w-bg);
-		color: var(--w-text);
-	}
-
-	.rhs {
-		grid-column: 3;
-		grid-row: 2;
-		border-left: 1px solid var(--w-border);
-		overflow-y: auto;
-		padding: 16px;
-		background: var(--w-bg-secondary, var(--w-bg));
-		min-width: 0;
-	}
-
-
 	.empty {
 		color: var(--w-text-secondary);
 		text-align: center;

@@ -133,6 +133,6 @@ $effect(() => {
 		color: var(--w-text-secondary);
 	}
 	.error {
-		color: var(--nb-danger, #b3261e);
+		color: var(--ld-danger, #b3261e);
 	}
 </style>

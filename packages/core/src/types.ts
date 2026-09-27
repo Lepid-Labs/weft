@@ -1,7 +1,7 @@
 /**
- * A ui-std-lib style selection: one theme name, or a scheme pair the UI's
+ * A lepid-design style selection: one theme name, or a scheme pair the UI's
  * light/dark toggle switches between. Names are validated by the UI against
- * the installed @nazuraki/styles manifest (core stays dependency-free, and a
+ * the installed @lepid-labs/styles manifest (core stays dependency-free, and a
  * theme newer than the installed set is reachable via `styleUrl`).
  */
 export type StyleConfig = string | { dark: string; light: string };
@@ -69,13 +69,13 @@ export interface WeftConfig {
 	/** Default theme when no user preference is saved. Falls back to system preference if unset. */
 	defaultTheme?: "light" | "dark";
 	/**
-	 * ui-std-lib style: one theme name (fixed scheme, toggle hidden) or a
+	 * lepid-design style: one theme name (fixed scheme, toggle hidden) or a
 	 * {dark, light} pair the toggle switches between. Defaults to
 	 * dark=luminous-precision / light=summer-cloud.
 	 */
 	style?: StyleConfig;
 	/**
-	 * Base URL serving ui-std-lib theme CSS and manifest.json (e.g. a jsDelivr
+	 * Base URL serving lepid-design theme CSS and manifest.json (e.g. a jsDelivr
 	 * styles/ path) — the escape hatch for themes newer than the styles
 	 * package the UI was built with.
 	 */

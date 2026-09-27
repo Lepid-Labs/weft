@@ -92,7 +92,7 @@ function handleClick(e: MouseEvent) {
 		word-wrap: break-word;
 	}
 	.render-error {
-		color: var(--nb-danger, #b3261e);
+		color: var(--ld-danger, #b3261e);
 	}
 	/* h5 and h6 were omitted here too, so they rendered in the body font. */
 	.markdown-body :global(:is(h1, h2, h3, h4, h5, h6)) {
@@ -167,7 +167,7 @@ function handleClick(e: MouseEvent) {
 	 * mobile scroll chaining; no comparable docs renderer does it either.
 	 */
 	/* Visual table styling (borders, header rule, row hover) is the design
-	 * system's — rehype-affordances puts `nb-table` on every rendered table.
+	 * system's — rehype-affordances puts `ld-table` on every rendered table.
 	 * What stays here is layout the wrapper contract needs. */
 	.markdown-body :global(.table-wrap) {
 		overflow-x: auto;
