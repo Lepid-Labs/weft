@@ -26,7 +26,7 @@ Phase 1 implementation is complete. The monorepo has three packages:
 
 ### `@lepid-labs/weft-ui` (packages/ui)
 - SvelteKit app with adapter-node
-- Three-panel layout: doc tree (LHN), main view, linked-items sidebar (RHS)
+- Three-panel layout: doc tree (LHN), main view, linked-items sidebar (RHS). The tree is built in `src/lib/doc-tree.ts` (pure, tested) and labels documents by title with the filename as fallback, keyed on path segment so equal titles stay distinct; the header wordmark is `siteTitle`, else "Weft"
 - Pure consumer: client code fetches the CLI's `/api` JSON; SSR loads read the manifest file at `WEFT_MANIFEST_PATH` (set by `weft serve`). No server-side `@lepid-labs/weft-core` runtime imports — types and `@lepid-labs/weft-core/browser` only
 - Components: DocTree, DocView, MarkdownRenderer (with in-app link interception), OpenApiRenderer, LinkedItems, SearchPalette (Cmd+K)
 - Navigation store with stack, breadcrumbs, back/forward

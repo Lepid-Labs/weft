@@ -33,7 +33,7 @@ The file is validated at load time: wrong types and bad enum values fail with th
 | `projects` | `WeftProject[]` | — | Multiple docs roots, one per product — see [Multiple Projects](#multiple-projects) |
 | `repos` | `Record<string, string>` | — | Local checkouts of other repos, keyed by `org/repo` — see [Multiple Repositories](#multiple-repositories) |
 | `entryPoint` | `string` | `"docs/README.md"` | Default document opened when no path is specified |
-| `siteTitle` | `string` | — | Site name used in `og:site_name` and page title (`Doc — Site`) |
+| `siteTitle` | `string` | — | Site name shown in the header, and used in `og:site_name` and the page title (`Doc — Site`). The header reads "Weft" when unset |
 | `siteUrl` | `string` | — | Canonical base URL (e.g. `https://docs.example.com`). Required for absolute `og:image` URLs |
 | `ogImage` | `string` | — | Default `og:image`. Relative to project root or an absolute URL. Overridden per-document via frontmatter |
 | `style` | `string \| {dark, light}` | `{dark: luminous-precision, light: summer-cloud}` | ui-std-lib theme(s) the UI renders in. A pair follows the light/dark toggle; a single name fixes the scheme and hides it — see [theming.md](theming.md) |
