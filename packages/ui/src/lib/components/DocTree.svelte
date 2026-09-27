@@ -1,4 +1,5 @@
 <script lang="ts">
+import { type TreeNode, buildGroups, buildTree } from "$lib/doc-tree.js";
 import type { WeftNode, WeftProjectRef } from "@lepid-labs/weft-core";
 
 interface Props {
@@ -9,62 +10,6 @@ interface Props {
 }
 
 let { nodes, projects, currentNodeId, onnavigate }: Props = $props();
-
-// Build a simple tree from flat node IDs by splitting on '/'
-interface TreeNode {
-	name: string;
-	nodeId?: string;
-	children: TreeNode[];
-}
-
-interface ProjectGroup {
-	name: string;
-	slug: string;
-	tree: TreeNode[];
-}
-
-/**
- * Build a tree from node IDs. `prefix` (a project slug) is dropped from the
- * displayed path so the slug isn't repeated as a folder under its own heading.
- */
-function buildTree(nodes: WeftNode[], prefix = ""): TreeNode[] {
-	const root: TreeNode[] = [];
-
-	for (const node of nodes) {
-		const path =
-			prefix && node.id.startsWith(`${prefix}/`) ? node.id.slice(prefix.length + 1) : node.id;
-		const parts = path.split("/");
-		let current = root;
-
-		for (let i = 0; i < parts.length; i++) {
-			const part = parts[i];
-			const isLeaf = i === parts.length - 1;
-
-			let existing = current.find((n) => n.name === part);
-			if (!existing) {
-				existing = { name: part, children: [] };
-				if (isLeaf) existing.nodeId = node.id;
-				current.push(existing);
-			}
-			current = existing.children;
-		}
-	}
-
-	return root;
-}
-
-function buildGroups(nodes: WeftNode[], projects: WeftProjectRef[]): ProjectGroup[] {
-	return projects
-		.map((project) => ({
-			name: project.name,
-			slug: project.slug,
-			tree: buildTree(
-				nodes.filter((node) => node.project === project.slug),
-				project.slug
-			),
-		}))
-		.filter((group) => group.tree.length > 0);
-}
 
 let grouped = $derived((projects?.length ?? 0) > 1);
 // docOrderStrict hides docs from the nav without removing them from the graph,
@@ -82,11 +27,11 @@ let groups = $derived(grouped ? buildGroups(visible, projects ?? []) : []);
 			style="padding-left: {8 + depth * 16}px"
 			onclick={() => onnavigate(node.nodeId!)}
 		>
-			{node.name}
+			{node.label}
 		</button>
 	{:else}
 		<div class="tree-folder" style="padding-left: {8 + depth * 16}px">
-			{node.name}
+			{node.label}
 		</div>
 		{#each node.children as child}
 			{@render treeNode(child, depth + 1)}

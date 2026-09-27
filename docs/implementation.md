@@ -317,7 +317,7 @@ Two specialized modes alter this layout: **reviewing** and **presenting**.
 ```
 
 ### Left-Hand Nav (LHN)
-- Doc tree: file/folder hierarchy derived from `docsDir`
+- Doc tree: file/folder hierarchy derived from `docsDir`; a document is labelled by its title (first `#` heading or frontmatter `title`), falling back to its filename, and a folder by its name
 - Click a node to load it in the main view
 - Collapsible; remembers expand/collapse state per session
 

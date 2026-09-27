@@ -70,7 +70,7 @@ function handleKeydown(e: KeyboardEvent) {
 	<!-- Header bar -->
 	<header class="header">
 		<div class="header-left">
-			<span class="wordmark">Weft</span>
+			<span class="wordmark">{manifest.site?.siteTitle || "Weft"}</span>
 		</div>
 		<div class="header-center">
 			{#if currentNode}
