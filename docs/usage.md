@@ -155,7 +155,23 @@ Set `data-theme="dark"` or `"light"` on the container, or anywhere above it, to 
 
 > The `--w-*` properties you'll see in the stylesheet are internal — the resolved values, not the inputs. Setting one does nothing useful; set the `--weft-*` name instead. The `--ld-*` names belong to lepid-design; overriding a specific one on the container works too, but `--weft-*` is the stable surface.
 
-> **Not published yet.** `@lepid-labs/weft-embed` is not on npm (the CLI is), so embedding today means building from a checkout and vendoring `weft.iife.js` and `weft.css` by hand — with no version to pin and no signal when they change.
+### Installing
+
+`@lepid-labs/weft-embed` is published to npm in step with the CLI. The bundle is self-contained, so installing it pulls in nothing else. A bundler imports the ES build and its stylesheet:
+
+```js
+import { mountDoc } from '@lepid-labs/weft-embed';
+import '@lepid-labs/weft-embed/style.css';
+```
+
+A plain page loads the IIFE build, which defines the `Weft` global, from a CDN, pinned to a published version:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@lepid-labs/weft-embed@<version>/dist/weft.css">
+<script src="https://cdn.jsdelivr.net/npm/@lepid-labs/weft-embed@<version>/dist/weft.iife.js"></script>
+```
+
+To self-host, copy `dist/weft.iife.js` and `dist/weft.css` out of the installed package.
 
 ## Navigation
 
