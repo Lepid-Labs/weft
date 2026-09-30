@@ -64,7 +64,7 @@ release version:
     git tag v{{version}}
     @echo "Now: git push && git push origin v{{version}}"
 
-# Publish from this machine instead of CI (first release, or CI without a token)
+# Publish from this machine instead of CI (a new package's first release, before npm trusts CI)
 publish:
     pnpm -r publish --access public
 
