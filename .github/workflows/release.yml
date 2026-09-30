@@ -2,6 +2,9 @@ name: Release
 
 # Publishes every public workspace package whose version is not yet on npm.
 # Trigger: push a tag `v<version>` after `just release <version>`.
+# Auth is npm trusted publishing (OIDC): each package on npmjs.com trusts this
+# workflow, so there is no token secret. A new package must be published once
+# by hand (`just publish`) before it can be given a trusted publisher.
 
 on:
   push:
@@ -9,7 +12,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm provenance
+  id-token: write # npm trusted publishing and provenance
 
 jobs:
   publish:
@@ -25,7 +28,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,5 +44,3 @@ jobs:
       # published, so re-running a release is safe.
       - name: Publish
         run: pnpm -r publish --access public --no-git-checks --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
