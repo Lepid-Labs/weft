@@ -318,7 +318,10 @@ export async function renderMarkdown(
 		// already used is caught as the duplicate it is.
 		.use(rehypeDropForgedIds)
 		.use(rehypeHeadingPermalinks)
-		.use(rehypeHighlight, { detect: false })
+		// A mermaid fence is a diagram's placeholder, not code to colour: left
+		// plain, it reaches the page as the source the client-side pass reads
+		// (`mermaid-dom.ts`), and as a readable code block when that pass cannot run.
+		.use(rehypeHighlight, { detect: false, plainText: ["mermaid"] })
 		.use(rehypeCodeLanguage)
 		.use(rehypeTableWrap)
 		.use(rehypeSanitize, schema)

@@ -1,5 +1,6 @@
 import type { WeftClient } from "$lib/client.js";
 import type { RenderOptions } from "$lib/markdown.js";
+import type { MermaidLoader } from "$lib/mermaid.js";
 import { loadRemoteStyles } from "$lib/style-loader.js";
 import { assertServableStyles, isBundledStyle } from "$lib/styles.js";
 import type { Manifest, StyleConfig } from "@lepid-labs/weft-core/browser";
@@ -14,6 +15,7 @@ import { createDocState } from "./doc-state.svelte.js";
 import "@lepid-labs/styles/all";
 
 export type { WeftClient } from "$lib/client.js";
+export type { MermaidApi, MermaidLoader } from "$lib/mermaid.js";
 
 /** Fetch any non-bundled theme (CSS + fonts) from the configured styleUrl. */
 function loadRemoteIfNeeded(style: StyleConfig | undefined, styleUrl: string | undefined): void {
@@ -53,6 +55,15 @@ export interface EmbedConfig {
 	remarkPlugins?: RenderOptions["remarkPlugins"];
 	rehypePlugins?: RenderOptions["rehypePlugins"];
 	extendSchema?: RenderOptions["extendSchema"];
+	/**
+	 * How ` ```mermaid ` diagrams are drawn.
+	 *
+	 * By default mermaid is fetched from jsDelivr, pinned to the version this
+	 * bundle was built against, and only by a page that has a diagram. Pass a
+	 * loader to bundle it yourself (`() => import("mermaid").then((m) => m.default)`)
+	 * or self-host it under a strict CSP; pass `false` to leave diagrams as code.
+	 */
+	mermaid?: false | MermaidLoader;
 	/**
 	 * lepid-design style: one theme name, or a {dark, light} pair the embed's
 	 * toggle switches between. Defaults to dark=luminous-precision /
@@ -135,6 +146,8 @@ export interface DocMountOptions extends DocMountState {
 	remarkPlugins?: RenderOptions["remarkPlugins"];
 	rehypePlugins?: RenderOptions["rehypePlugins"];
 	extendSchema?: RenderOptions["extendSchema"];
+	/** As on EmbedConfig: how mermaid is loaded, or `false` for none. */
+	mermaid?: false | MermaidLoader;
 	/**
 	 * lepid-design style for the mounted reader. A pair follows the host's
 	 * nearest-ancestor `data-theme` (the mirroring contract); a single name is
@@ -221,6 +234,7 @@ export function mountDoc(target: string | HTMLElement, options: DocMountOptions)
 			remarkPlugins: options.remarkPlugins,
 			rehypePlugins: options.rehypePlugins,
 			extendSchema: options.extendSchema,
+			mermaid: options.mermaid,
 			style: options.style,
 			state,
 		},
