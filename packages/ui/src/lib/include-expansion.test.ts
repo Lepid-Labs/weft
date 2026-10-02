@@ -1,7 +1,7 @@
 import type { WeftEdge } from "@lepid-labs/weft-core/browser";
 import { describe, expect, it } from "vitest";
 import type { IncludeOptions } from "./include-expansion.js";
-import { MAX_INCLUDE_DEPTH, resolveHref } from "./include-expansion.js";
+import { MAX_INCLUDE_DEPTH } from "./include-expansion.js";
 import { renderMarkdown } from "./markdown.js";
 
 const RUNBOOK = `# Runbook
@@ -225,18 +225,63 @@ describe("include expansion", () => {
 	});
 });
 
-describe("resolveHref", () => {
-	it("resolves a sibling", () => {
-		expect(resolveHref("guides/faq.md", "setup.md")).toBe("guides/setup.md");
+// Links in any form link extraction resolves expand, not only relative ones.
+// The matcher itself is core's; these run it against real rendered hrefs.
+describe("include expansion (link forms)", () => {
+	const BLOB = "https://github.com/acme/alpha/blob/main/docs/runbook.md#deploys";
+
+	/** The edge link extraction makes from a blob URL into a mapped repo. */
+	const blobReference: WeftEdge = {
+		from: { node: "faq.md" },
+		to: { node: "alpha/runbook.md", anchor: "#deploys" },
+		type: "references",
+		resolvedFrom: BLOB,
+	};
+
+	it("expands a GitHub blob URL through the edge extraction made from it", async () => {
+		const html = await renderMarkdown(`[Deploys](${BLOB})\n`, {
+			includes: options({ "alpha/runbook.md": RUNBOOK }, [
+				includeEdge("faq.md", "alpha/runbook.md", "#deploys"),
+				blobReference,
+			]),
+		});
+
+		expect(html).toContain('class="weft-include"');
+		expect(html).toContain("Ship it with");
+		expect(html).not.toContain("Watch the graphs");
 	});
-	it("resolves ./ and ../", () => {
-		expect(resolveHref("guides/faq.md", "./setup.md")).toBe("guides/setup.md");
-		expect(resolveHref("guides/faq.md", "../intro.md")).toBe("intro.md");
+
+	it("leaves a blob URL that extraction never resolved as a plain link", async () => {
+		const html = await renderMarkdown(`[Deploys](${BLOB})\n`, {
+			includes: options({ "alpha/runbook.md": RUNBOOK }, [
+				includeEdge("faq.md", "alpha/runbook.md", "#deploys"),
+			]),
+		});
+
+		expect(html).not.toContain("weft-include");
 	});
-	it("returns undefined for a path escaping the root", () => {
-		expect(resolveHref("faq.md", "../outside.md")).toBeUndefined();
+
+	// The renderer percent-encodes the space and the accented letters; link
+	// extraction decoded them when it made the edge.
+	it("expands a link whose destination the renderer re-encodes", async () => {
+		const html = await renderMarkdown("[r](<My Report.md#résumé>)\n", {
+			includes: options({ "My Report.md": "# Résumé\n\nqualified\n" }, [
+				includeEdge("faq.md", "My Report.md", "#résumé"),
+			]),
+		});
+
+		expect(html).toContain("qualified");
 	});
-	it("returns undefined for an absolute URL", () => {
-		expect(resolveHref("faq.md", "https://example.com/x.md")).toBeUndefined();
+
+	it("expands a published-form link from a subdirectory", async () => {
+		const html = await renderMarkdown("[Guide](guide.html)\n", {
+			includes: options(
+				{ "sub/guide.md": "guide text\n" },
+				[includeEdge("sub/faq.md", "sub/guide.md", undefined, { resolvedFrom: "sub/guide.html" })],
+				"sub/faq.md"
+			),
+		});
+
+		expect(html).toContain("guide text");
 	});
 });

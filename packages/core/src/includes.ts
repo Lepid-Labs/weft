@@ -1,8 +1,10 @@
 import { extractMarkdownAnchors } from "./anchors/markdown.js";
+import { decodePercent } from "./percent.js";
 import type {
 	IncludeContributes,
 	IncludeDefaults,
 	IncludeHeadingShift,
+	LinkRef,
 	WeftEdge,
 } from "./types.js";
 
@@ -96,4 +98,87 @@ export function extractSection(content: string, anchor?: string): SectionRange |
 	const lines = content.split(/\r?\n/);
 	const text = lines.slice(start.line - 1, next?.line ? next.line - 1 : undefined).join("\n");
 	return { text, baseLevel: level };
+}
+
+/** A URL scheme: anything with one is not a path relative to a document. */
+const SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+
+/**
+ * Find the include edge a link declares, for links in one document.
+ *
+ * Takes the link's destination as written and returns the `includes` edge it
+ * is the source of, if any. Undefined instead of a matcher when the document
+ * declares no includes, so a caller can skip looking for links at all.
+ *
+ * One implementation for both readers: the renderer expands what this matches,
+ * and `include-link-missing` reports an include edge nothing matches. Two
+ * copies would let `weft check` pass a page that renders wrong — the failure
+ * this exists to prevent.
+ *
+ * A relative destination resolves against the node id, decoded the way link
+ * extraction decodes it. Any other destination — a GitHub blob URL into a
+ * mapped repo — is looked up through the edge extraction already made from it,
+ * which records the link as written in `resolvedFrom`. The manifest holds the
+ * answer, so the repo map never has to reach a browser.
+ */
+export function includeMatcher(
+	nodeId: string,
+	edges: WeftEdge[]
+): ((href: string) => WeftEdge | undefined) | undefined {
+	const includes = edges.filter(
+		(edge) => edge.type === INCLUDES && !edge.pending && edge.from.node === nodeId
+	);
+	if (!includes.length) return undefined;
+
+	// Keyed decoded: a renderer re-encodes what it does not consider URL-safe,
+	// so the same link can reach this as `café.md` or `caf%C3%A9.md`.
+	const resolved = new Map<string, LinkRef>();
+	for (const edge of edges) {
+		if (edge.from.node === nodeId && edge.resolvedFrom) {
+			resolved.set(decodePercent(edge.resolvedFrom), edge.to);
+		}
+	}
+
+	const targetOf = (href: string): LinkRef | undefined => {
+		if (SCHEME.test(href)) return resolved.get(decodePercent(href));
+
+		const [path, fragment] = href.split("#");
+		if (!path) return undefined;
+		const node = resolveHref(nodeId, decodePercent(path));
+		if (!node) return undefined;
+		return fragment ? { node, anchor: `#${decodePercent(fragment)}` } : { node };
+	};
+
+	return (href) => {
+		const target = targetOf(href);
+		if (!target) return undefined;
+		return includes.find(
+			(edge) =>
+				// An include written in a published form (`guide.html`) resolved to its
+				// source, and a link in the same form still names it.
+				(edge.to.node === target.node || edge.resolvedFrom === target.node) &&
+				(edge.to.anchor ?? "") === (target.anchor ?? "")
+		);
+	};
+}
+
+/**
+ * Resolve a relative href against a node id's directory, the same arithmetic
+ * link extraction does on paths. A path that escapes the id's root, or a URL
+ * with a scheme, resolves to nothing.
+ */
+export function resolveHref(nodeId: string, href: string): string | undefined {
+	if (SCHEME.test(href)) return undefined;
+
+	const base = nodeId.split("/").slice(0, -1);
+	for (const segment of href.split("/")) {
+		if (segment === "" || segment === ".") continue;
+		if (segment === "..") {
+			if (!base.length) return undefined;
+			base.pop();
+			continue;
+		}
+		base.push(segment);
+	}
+	return base.join("/") || undefined;
 }

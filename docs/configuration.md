@@ -204,6 +204,7 @@ Run `weft analyze --list-rules` to see the available rule ids and their defaults
 | `node-duplicate` | `info` | Several documents hold identical content at different paths |
 | `node-diverged` | `warn` | Documents that once held identical content no longer match |
 | `include-cycle` | `error` | Documents include each other in a cycle, so no composed form of them exists |
+| `include-link-missing` | `warn` | An include edge matches no link standing alone in its document, so nothing expands |
 | `validator-error` | `error` | A rule threw while running |
 
 A missing document and a missing anchor are separate rules because they usually have different causes and different fixes: the first means the path is wrong or the document was never written, the second means the section moved or was renamed. When a heading was reworded rather than deleted, `edge-anchor-missing` names the anchor it most likely became.
@@ -376,6 +377,9 @@ A link to `https://github.com/acme/alpha/blob/main/docs/api.md` in any indexed d
 See the [Alpha API](https://github.com/acme/alpha/blob/main/docs/api.md#endpoints).
 ```
 
+That holds for [composed documents](#composed-documents-include-edges) too: a blob URL standing alone as a block
+expands like a relative link, and a sidecar `target` may be the same URL, copied from the link it describes.
+
 The edge records the URL as written in `resolvedFrom`. Any `blob/<ref>/` segment is accepted — weft serves the working tree, so which ref the URL claims does not affect resolution. A URL into an unmapped repo, a non-`blob` URL (`tree/`, issues, other hosts), or a path landing outside every docs root stays an ordinary external link. Nothing is ever fetched over the network — unless you opt in with `weft serve --repo`, below.
 
 ### Serving Without a Checkout
@@ -501,6 +505,26 @@ links:
 ```
 
 The document stays a plain link list on GitHub, where it renders as exactly that. In Weft's UI each include link that stands alone as a block — the sole content of a paragraph or list item — expands inline at render time: the target's anchor range renders in place, inside a visibly attributed frame linking back to the source. A link woven into a sentence never expands.
+
+**Which link is the include.** A link matches an include edge when it names the same document and anchor as the
+edge's `target`. A relative link resolves against the including document's node id, so a link into another project
+is written from the id (`../ops/runbook.md`) — a path that means nothing on GitHub. A GitHub blob URL into a
+[mapped repo](#github-blob-urls) matches through the edge it already resolved to, so one link works in both places:
+
+```markdown
+[Deploys](https://github.com/acme/ops/blob/main/docs/runbook.md#deploys)
+```
+
+```yaml
+links:
+  - target: https://github.com/acme/ops/blob/main/docs/runbook.md#deploys   # or ops/runbook.md#deploys
+    type: includes
+```
+
+**Includes that never expand are reported.** An include edge that no standalone link matches leaves the page showing
+an ordinary link, which looks deliberate. The [`include-link-missing`](#rules) rule (`warn`) reports it — typically a
+link woven into a sentence, an anchor that differs from the sidecar's, or a blob URL into a repo with no checkout
+mapped. It uses the renderer's own matching, so it reports exactly the includes a page leaves unexpanded.
 
 **Anchor ranges.** `target: doc.md#some-heading` includes from that heading to the next heading of the same or shallower level. A target with no anchor includes the whole document.
 

@@ -24,10 +24,13 @@ function graph(edges: WeftEdge[]): Manifest {
 	return { version: 2, nodes: [...ids].map(doc), edges };
 }
 
-/** Run only this validator, so the assertions are about it alone. */
-async function check(manifest: Manifest) {
+/** Run only this validator, and only the one rule, so the assertions are about it alone. */
+async function check(manifest: Manifest, rule = "include-cycle") {
 	const registry = new ValidatorRegistry().register(includeValidator);
-	return validateManifest(manifest, CONFIG, registry);
+	const rules = Object.fromEntries(
+		includeValidator.rules.map((r) => [r.id, r.id === rule ? r.defaultSeverity : "off"] as const)
+	);
+	return validateManifest(manifest, { ...CONFIG, rules }, registry);
 }
 
 describe("include-cycle", () => {
@@ -110,5 +113,87 @@ describe("include-cycle", () => {
 
 		expect(diagnostics).toHaveLength(1);
 		expect(diagnostics[0].data?.nodes).toEqual(["a.md", "b.md"]);
+	});
+});
+
+describe("include-link-missing", () => {
+	const BLOB = "https://github.com/acme/alpha/blob/main/docs/api.md#endpoints";
+
+	/** A manifest whose `faq.md` records these block links. */
+	function faq(blockLinks: string[], edges: WeftEdge[]): Manifest {
+		const manifest = graph(edges);
+		manifest.nodes = manifest.nodes.map((node) =>
+			node.id === "faq.md" ? { ...node, blockLinks } : node
+		);
+		return manifest;
+	}
+
+	const missing = async (manifest: Manifest) =>
+		(await check(manifest, "include-link-missing")).diagnostics;
+
+	it("is quiet when a block link matches the include", async () => {
+		const manifest = faq(
+			["runbook.md#deploys"],
+			[includes("faq.md", "runbook.md", { to: { node: "runbook.md", anchor: "#deploys" } })]
+		);
+
+		expect(await missing(manifest)).toEqual([]);
+	});
+
+	it("reports an include no block link matches, as a warning on the edge", async () => {
+		const edge = includes("faq.md", "runbook.md", {
+			to: { node: "runbook.md", anchor: "#deploys" },
+		});
+		const diagnostics = await missing(faq(["pricing.md"], [edge]));
+
+		expect(diagnostics).toHaveLength(1);
+		expect(diagnostics[0]).toMatchObject({
+			rule: "include-link-missing",
+			severity: "warn",
+			target: { kind: "edge", edge },
+		});
+		expect(diagnostics[0].message).toContain("runbook.md#deploys");
+	});
+
+	it("reports an include whose link names a different anchor", async () => {
+		const manifest = faq(
+			["runbook.md#monitoring"],
+			[includes("faq.md", "runbook.md", { to: { node: "runbook.md", anchor: "#deploys" } })]
+		);
+
+		expect(await missing(manifest)).toHaveLength(1);
+	});
+
+	it("reports an include from a document with no block links at all", async () => {
+		expect(await missing(graph([includes("faq.md", "runbook.md")]))).toHaveLength(1);
+	});
+
+	it("matches a blob URL through the edge indexing resolved it to", async () => {
+		const to = { node: "alpha/api.md", anchor: "#endpoints" };
+		const manifest = faq(
+			[BLOB],
+			[
+				includes("faq.md", "alpha/api.md", { to }),
+				{ from: { node: "faq.md" }, to, type: "references", resolvedFrom: BLOB },
+			]
+		);
+
+		expect(await missing(manifest)).toEqual([]);
+	});
+
+	// The issue's workaround: an id-relative href that names no real path, so
+	// indexing made no edge from it — but the renderer expands it, so the rule
+	// must not report it.
+	it("matches a cross-project href the way the renderer resolves it", async () => {
+		const manifest = graph([includes("invoice/cross.md", "gotax/fees.md")]);
+		manifest.nodes = manifest.nodes.map((node) =>
+			node.id === "invoice/cross.md" ? { ...node, blockLinks: ["../gotax/fees.md"] } : node
+		);
+
+		expect(await missing(manifest)).toEqual([]);
+	});
+
+	it("skips a pending include", async () => {
+		expect(await missing(graph([includes("faq.md", "future.md", { pending: true })]))).toEqual([]);
 	});
 });

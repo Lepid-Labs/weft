@@ -2,6 +2,7 @@ import { relative, sep } from "node:path";
 import { type Document, isMap, isSeq, parseDocument } from "yaml";
 import { type DocsRoot, nodeIdFor, rootForPath } from "../config.js";
 import { CONTRIBUTES_MODES, HEADING_SHIFTS } from "../includes.js";
+import type { RepoMap } from "../repos.js";
 import { scalarText } from "../scalar-source.js";
 import type {
 	Assertions,
@@ -10,6 +11,7 @@ import type {
 	LinkRef,
 	WeftEdge,
 } from "../types.js";
+import { resolveBlobUrl } from "./resolve.js";
 
 interface SidecarLink {
 	anchor?: string;
@@ -65,12 +67,15 @@ function sourceHashOf(doc: Document, index: number): string | undefined {
  *
  * Targets are relative to the source document's own docs root. In multi-project
  * mode a target may instead be qualified with another project's slug
- * (`beta/api.yaml`) to point across products.
+ * (`beta/api.yaml`) to point across products. A GitHub blob URL into a repo the
+ * `repos` map knows resolves the way the same URL does in Markdown, so a target
+ * can be copied straight from the link it describes.
  */
 export function extractSidecarLinks(
 	content: string,
 	sidecarPath: string,
-	roots: DocsRoot[]
+	roots: DocsRoot[],
+	repos?: RepoMap
 ): WeftEdge[] {
 	const doc = parseDocument(content);
 	const data = doc.toJS() as SidecarFile | null;
@@ -84,8 +89,8 @@ export function extractSidecarLinks(
 	const fromNode = nodeIdFor(sourceRoot, relative(sourceRoot.absDir, sourceFile));
 	const slugs = new Set(roots.map((root) => root.slug).filter(Boolean));
 
-	return data.links.map((link, index) => {
-		const [targetPath, targetAnchor] = link.target.split("#");
+	const targetOf = (target: string): LinkRef => {
+		const [targetPath, targetAnchor] = target.split("#");
 
 		// A target already qualified with a known project slug is used as-is;
 		// anything else resolves within the source document's own project.
@@ -93,19 +98,27 @@ export function extractSidecarLinks(
 			? targetPath
 			: nodeIdFor(sourceRoot, targetPath);
 
-		const from: LinkRef = { node: fromNode };
-		if (link.anchor) from.anchor = link.anchor;
-
 		const to: LinkRef = { node: qualified };
 		if (targetAnchor) to.anchor = `#${targetAnchor}`;
+		return to;
+	};
+
+	return data.links.map((link, index) => {
+		// Any other URL is still read as a path, and reported as the missing
+		// target it is.
+		const blob = resolveBlobUrl(link.target, roots, repos);
+
+		const from: LinkRef = { node: fromNode };
+		if (link.anchor) from.anchor = link.anchor;
 
 		const sourceHash = sourceHashOf(doc, index);
 
 		return {
 			from,
-			to,
+			to: blob ?? targetOf(link.target),
 			type: link.type ?? "references",
 			label: link.label,
+			...(blob ? { resolvedFrom: link.target } : {}),
 			...(link.pending === true ? { pending: true } : {}),
 			...(hasAssertions(link.asserts) ? { asserts: link.asserts } : {}),
 			...(sourceHash ? { sourceHash } : {}),
