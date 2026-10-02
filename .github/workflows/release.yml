@@ -40,7 +40,15 @@ jobs:
             exit 1
           fi
 
-      # Each package's prepublishOnly builds it; pnpm skips versions already
-      # published, so re-running a release is safe.
+      # Build every package up front rather than relying on prepublishOnly
+      # alone. pnpm skips a version already on npm *and its prepublishOnly*, so
+      # on a re-run weft-core went unbuilt and the embed — whose build resolves
+      # @lepid-labs/weft-core through its dist/ — failed. With this, re-running
+      # a release that stopped partway is safe.
+      - name: Build
+        run: pnpm -r run build
+
+      # Each package's prepublishOnly builds it again; pnpm skips versions
+      # already published.
       - name: Publish
         run: pnpm -r publish --access public --no-git-checks --provenance
