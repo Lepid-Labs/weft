@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { buildManifest } from "./manifest.js";
 import { WeftService } from "./service.js";
 import type { ProjectsIndex, WeftConfig } from "./types.js";
+import { validateManifest } from "./validate/run.js";
 
 /**
  * Out-of-tree docs roots end to end: a meta repo whose config maps a sibling
@@ -64,6 +65,33 @@ beforeAll(() => {
 		].join("\n")
 	);
 
+	// The shape from #78: one include written node-id-relative, one as a blob
+	// URL (its sidecar target copied from the link), and one with no link.
+	writeFileSync(
+		join(meta, "docs", "composed.md"),
+		[
+			"# Composed",
+			"",
+			"[Guide](../alpha/guide.md)",
+			"",
+			"[Endpoints](https://github.com/acme/alpha/blob/main/docs/api.md#endpoints)",
+			"",
+		].join("\n")
+	);
+	writeFileSync(
+		join(meta, "docs", "composed.md.weft"),
+		[
+			"links:",
+			"  - target: alpha/guide.md",
+			"    type: includes",
+			"  - target: https://github.com/acme/alpha/blob/main/docs/api.md#endpoints",
+			"    type: includes",
+			"  - target: alpha/api.md",
+			"    type: includes",
+			"",
+		].join("\n")
+	);
+
 	mkdirSync(join(alpha, "docs"), { recursive: true });
 	writeFileSync(join(alpha, "docs", "guide.md"), "# Guide\n\n[API](api.md)\n");
 	writeFileSync(join(alpha, "docs", "api.md"), "# API\n\n## Endpoints\n");
@@ -81,7 +109,7 @@ describe("multi-repo indexing", () => {
 		const manifest = await buildManifest(multiRepoConfig());
 		const ids = manifest.nodes.map((n) => n.id).sort();
 
-		expect(ids).toEqual(["alpha/api.md", "alpha/guide.md", "meta/README.md"]);
+		expect(ids).toEqual(["alpha/api.md", "alpha/guide.md", "meta/README.md", "meta/composed.md"]);
 		expect(manifest.projects).toEqual([
 			{ name: "Meta", slug: "meta", docsDir: "docs" },
 			{ name: "Alpha", slug: "alpha", docsDir: "docs", repo: "acme/alpha" },
@@ -111,6 +139,24 @@ describe("multi-repo indexing", () => {
 		});
 		// The unmapped repo's URL stays an ordinary external link.
 		expect(manifest.edges.some((e) => e.label === "Unmapped")).toBe(false);
+	});
+
+	it("matches blob-URL and id-relative includes to their links, reporting only the unlinked one", async () => {
+		const config = multiRepoConfig();
+		const manifest = await buildManifest(config);
+		const { diagnostics } = await validateManifest(manifest, config);
+		const missing = diagnostics.filter((d) => d.rule === "include-link-missing");
+
+		expect(manifest.edges).toContainEqual(
+			expect.objectContaining({
+				type: "includes",
+				to: { node: "alpha/api.md", anchor: "#endpoints" },
+				resolvedFrom: "https://github.com/acme/alpha/blob/main/docs/api.md#endpoints",
+			})
+		);
+		expect(missing).toHaveLength(1);
+		const { target } = missing[0];
+		expect(target.kind === "edge" && target.edge.to).toEqual({ node: "alpha/api.md" });
 	});
 
 	it("dates each node from its own repo's history", async () => {

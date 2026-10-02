@@ -1,5 +1,6 @@
-import { INCLUDES } from "../../includes.js";
-import type { Finding, Rule, Validator } from "../types.js";
+import { INCLUDES, includeMatcher } from "../../includes.js";
+import type { WeftEdge } from "../../types.js";
+import type { Finding, Rule, ValidationContext, Validator } from "../types.js";
 
 export const INCLUDE_CYCLE: Rule = {
 	id: "include-cycle",
@@ -9,8 +10,31 @@ export const INCLUDE_CYCLE: Rule = {
 	defaultSeverity: "error",
 };
 
+export const INCLUDE_LINK_MISSING: Rule = {
+	id: "include-link-missing",
+	description: "An include edge matches no link standing alone in its document, so nothing expands",
+	// Almost certainly an authoring mistake, but the page still renders — the
+	// link stays a link — and a new rule should not fail a build that passed.
+	defaultSeverity: "warn",
+};
+
 /**
- * Report cycles in the `includes` edge graph.
+ * Check the `includes` edges: that the graph they form has no cycle, and that
+ * each one has a link in its document to expand at.
+ */
+export const includeValidator: Validator = {
+	rules: [INCLUDE_CYCLE, INCLUDE_LINK_MISSING],
+
+	run(context) {
+		return [
+			...(context.isEnabled(INCLUDE_CYCLE.id) ? includeCycles(context) : []),
+			...(context.isEnabled(INCLUDE_LINK_MISSING.id) ? unmatchedIncludes(context) : []),
+		];
+	},
+};
+
+/**
+ * Cycles in the `includes` edge graph.
  *
  * Cycles are detected at document granularity even when the edges select anchor
  * ranges: a range that provably excludes the back-reference is possible in
@@ -26,32 +50,70 @@ export const INCLUDE_CYCLE: Rule = {
  * Pending edges are skipped — the target does not exist yet, so nothing can
  * expand through it, and `edge-pending` already reports the marker.
  */
-export const includeValidator: Validator = {
-	rules: [INCLUDE_CYCLE],
+function includeCycles({ manifest }: ValidationContext): Finding[] {
+	const adjacency = new Map<string, Set<string>>();
+	for (const edge of manifest.edges) {
+		if (edge.type !== INCLUDES || edge.pending) continue;
+		const targets = adjacency.get(edge.from.node) ?? new Set();
+		targets.add(edge.to.node);
+		adjacency.set(edge.from.node, targets);
+	}
 
-	run({ manifest }) {
-		const adjacency = new Map<string, Set<string>>();
-		for (const edge of manifest.edges) {
-			if (edge.type !== INCLUDES || edge.pending) continue;
-			const targets = adjacency.get(edge.from.node) ?? new Set();
-			targets.add(edge.to.node);
-			adjacency.set(edge.from.node, targets);
-		}
+	const findings: Finding[] = [];
+	for (const cycle of findCycles(adjacency)) {
+		const members = [...cycle].sort();
+		findings.push({
+			rule: INCLUDE_CYCLE.id,
+			message: `Include cycle: ${members.join(" → ")} → ${members[0]}`,
+			target: { kind: "graph" },
+			hint: "Break the cycle by removing one include, or restructure so the shared content lives in a document neither includes.",
+			data: { nodes: members },
+		});
+	}
+	return findings;
+}
 
-		const findings: Finding[] = [];
-		for (const cycle of findCycles(adjacency)) {
-			const members = [...cycle].sort();
+/**
+ * Include edges that no link in their source document expands.
+ *
+ * An include expands only where a link standing alone as a block matches it,
+ * and a mismatch fails quietly: the page shows an ordinary link, which looks
+ * deliberate. Matching uses the renderer's own matcher over the block links
+ * indexing recorded, so this reports exactly the includes the page leaves
+ * unexpanded. A document with no recorded block links — not Markdown, or
+ * holding none — has nothing an include could expand at.
+ *
+ * Pending edges are skipped, as the renderer skips them: `edge-pending`
+ * already reports the marker.
+ */
+function unmatchedIncludes({ manifest, nodes }: ValidationContext): Finding[] {
+	const bySource = new Map<string, WeftEdge[]>();
+	for (const edge of manifest.edges) {
+		const group = bySource.get(edge.from.node);
+		if (group) group.push(edge);
+		else bySource.set(edge.from.node, [edge]);
+	}
+
+	const findings: Finding[] = [];
+	for (const [source, edges] of bySource) {
+		const match = includeMatcher(source, edges);
+		if (!match) continue;
+
+		const matched = new Set((nodes.get(source)?.blockLinks ?? []).map(match));
+		for (const edge of edges) {
+			if (edge.type !== INCLUDES || edge.pending || matched.has(edge)) continue;
+
+			const target = `${edge.to.node}${edge.to.anchor ?? ""}`;
 			findings.push({
-				rule: INCLUDE_CYCLE.id,
-				message: `Include cycle: ${members.join(" → ")} → ${members[0]}`,
-				target: { kind: "graph" },
-				hint: "Break the cycle by removing one include, or restructure so the shared content lives in a document neither includes.",
-				data: { nodes: members },
+				rule: INCLUDE_LINK_MISSING.id,
+				message: `${source} includes ${target}, but no link to it stands alone in ${source}, so nothing expands`,
+				target: { kind: "edge", edge },
+				hint: "Give the link a line of its own — the sole content of a paragraph or list item — naming the same document and anchor as the include.",
 			});
 		}
-		return findings;
-	},
-};
+	}
+	return findings;
+}
 
 /**
  * Strongly connected components with more than one member, plus self-loops —

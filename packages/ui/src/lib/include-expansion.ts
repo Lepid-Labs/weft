@@ -146,7 +146,12 @@ function collectCandidates(tree: Root, context: IncludeContext): Candidate[] {
 	return candidates;
 }
 
-/** The link standing alone in a `p` or `li`, if this element is one. */
+/**
+ * The link standing alone in a `p` or `li`, if this element is one.
+ *
+ * Indexing makes the same test on the Markdown tree to record a document's
+ * `blockLinks` for `include-link-missing`; a change here must be made there too.
+ */
 function soleBlockLink(element: Element): Element | undefined {
 	if (element.tagName !== "p" && element.tagName !== "li") return undefined;
 
