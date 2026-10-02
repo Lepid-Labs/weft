@@ -74,6 +74,16 @@ Every visual property resolves through three layers, first match wins:
 The `--w-*` names in the stylesheet are the resolved internals — set the
 `--weft-*` name instead.
 
+## Diagrams
+
+Mermaid diagrams are drawn from the same resolved tokens — surfaces, text,
+accent and the sans font — read where the diagram sits, so an embed's
+diagrams follow its own mount's style and any `--weft-*` override. Whether
+a diagram is drawn dark is judged from the resolved background, not from
+`data-theme`, so a fixed dark style such as `neon-butterfly` gets dark
+diagrams whatever the toggle says. Mermaid bakes colours into each SVG, so
+a change of scheme or style redraws them.
+
 ## Page chrome
 
 The page itself is lepid-design's app shell, so each style brings its own chrome rather than recolouring Weft's: `ld-shell` (the style's page background, a sticky header, a sticky nav), `ld-shell__brand` showing `siteTitle`, `ld-sidenav` for the document tree (one section per project, its name as the heading, the current document marked `aria-current="page"`), `ld-btn` and `ld-icon-btn` for search and the theme toggle, and `ld-aside-layout` for the document with its linked items beside it. Below the design system's 48rem breakpoint the nav becomes a drawer behind the header's menu button.

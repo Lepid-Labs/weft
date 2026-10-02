@@ -155,9 +155,34 @@ Set `data-theme="dark"` or `"light"` on the container, or anywhere above it, to 
 
 > The `--w-*` properties you'll see in the stylesheet are internal — the resolved values, not the inputs. Setting one does nothing useful; set the `--weft-*` name instead. The `--ld-*` names belong to lepid-design; overriding a specific one on the container works too, but `--weft-*` is the stable surface.
 
+### Diagrams
+
+The embed does not bundle mermaid, which would add several MB to every host whether its documents have diagrams or
+not. By default, a page with a ` ```mermaid ` fence imports mermaid's ESM build from jsDelivr, pinned to the exact
+version the embed was built against. That is a request to a third party your page did not make before. The `mermaid`
+option, on both `mountWeft` and `mountDoc`, changes it:
+
+```js
+// Bundle mermaid yourself — your bundler code-splits it into a lazy chunk:
+Weft.mountDoc('#host', { client, manifest, nodeId, mermaid: () => import('mermaid').then((m) => m.default) });
+
+// Self-host it (copy mermaid's whole dist/ — the entry loads chunks beside it),
+// e.g. under a Content-Security-Policy that blocks jsDelivr:
+Weft.mountDoc('#host', { client, manifest, nodeId,
+  mermaid: () => import('/vendor/mermaid/mermaid.esm.min.mjs').then((m) => m.default) });
+
+// No diagrams: fences stay code blocks, and nothing is fetched.
+Weft.mountDoc('#host', { client, manifest, nodeId, mermaid: false });
+```
+
+A loader is called once per page that has diagrams and must resolve to mermaid's default export. While it draws, mermaid
+briefly appends a measuring element to your `<body>` and removes it.
+
 ### Installing
 
-`@lepid-labs/weft-embed` is published to npm in step with the CLI. The bundle is self-contained, so installing it pulls in nothing else. A bundler imports the ES build and its stylesheet:
+`@lepid-labs/weft-embed` is published to npm in step with the CLI. The bundle is self-contained, so installing it pulls
+in nothing else; the one thing it fetches at runtime is mermaid, and only for a page with a diagram
+([Diagrams](#diagrams)). A bundler imports the ES build and its stylesheet:
 
 ```js
 import { mountDoc } from '@lepid-labs/weft-embed';
@@ -203,10 +228,19 @@ Markdown is rendered with GitHub-flavoured Markdown plus:
 - **Syntax highlighting** on fenced blocks that declare a language, with the language shown as a chip on the block. Highlighting is class-based and themed with Weft's own custom properties, so it follows light and dark without a second stylesheet.
 - **Scrollable tables** — every table is wrapped so a wide one scrolls itself instead of moving the page sideways, with zebra striping and a row hover.
 - **Heading permalinks** — every heading gets an id (the same slug the graph indexes) and a `#` control to copy a link to it.
+- **Mermaid diagrams** — a ` ```mermaid ` fence renders as a diagram, so the same Markdown reads as a diagram on
+  GitHub and in Weft, including inside an [included](configuration.md#composed-documents-include-edges) section.
+  Diagrams take their colours and font from the active style and redraw when the theme changes. Mermaid is loaded only
+  by a page that has a diagram. A diagram that fails to parse is replaced by the parse error and its source; the rest
+  of the page renders as usual. Without JavaScript, or if mermaid cannot load, the fence shows as a code block.
 
 ### Raw HTML is sanitized
 
 Documents may contain raw HTML, and it is filtered through an allowlist before it reaches the page. Inline event handlers, `<iframe>`, and `javascript:` links do not survive; ordinary formatting and a plain inline `<svg>` figure do.
+
+Mermaid diagrams are drawn after the allowlist, in the browser, so their SVG is mermaid's to make safe: Weft runs it in
+mermaid's `strict` security level (labels sanitized, no click handlers), which a diagram's own `%%{init}%%` directive
+cannot change.
 
 This matters most for `@lepid-labs/weft-embed`, where a host page renders Markdown it may not control — the person carrying the risk is not always the person who can merge to the docs repo.
 

@@ -1,5 +1,8 @@
 <script lang="ts">
 import { type RenderOptions, renderMarkdown } from "$lib/markdown.js";
+import { renderMermaidIn } from "$lib/mermaid-dom.js";
+import { MERMAID_LOADER_KEY, type MermaidLoader } from "$lib/mermaid.js";
+import { getContext } from "svelte";
 
 interface Props extends RenderOptions {
 	content: string;
@@ -25,12 +28,18 @@ let {
 }: Props = $props();
 let htmlContent = $state("");
 let renderError = $state("");
+let body: HTMLDivElement | undefined = $state();
+
+// Set by the host app; absent, a mermaid fence stays the code block it is.
+const loadMermaid = getContext<MermaidLoader | undefined>(MERMAID_LOADER_KEY);
+let generation = 0;
 
 $effect(() => {
 	render(content);
 });
 
 async function render(md: string) {
+	const current = ++generation;
 	try {
 		htmlContent = await renderMarkdown(md, {
 			remarkPlugins,
@@ -47,8 +56,46 @@ async function render(md: string) {
 		return;
 	}
 	// After the DOM has the new HTML, not merely after the promise resolves.
-	requestAnimationFrame(() => onrendered?.());
+	requestAnimationFrame(() => {
+		onrendered?.();
+		void drawDiagrams(current);
+	});
 }
+
+/**
+ * Diagrams land after the document does, and change its height when they do.
+ * `onrendered` fires again so an anchor below a diagram is scrolled to where it
+ * ended up, not where it was — and only then, so a page without diagrams pays
+ * nothing.
+ */
+async function drawDiagrams(current: number) {
+	if (!loadMermaid || !body) return;
+	const drew = await renderMermaidIn(body, loadMermaid);
+	if (drew && current === generation) onrendered?.();
+}
+
+/**
+ * Redraw on a theme change. Mermaid bakes colours into each SVG, so a diagram
+ * drawn in the dark style stays dark after the toggle unless it is drawn again.
+ * Any ancestor may carry the attributes — `<html>` in the app, the mount's own
+ * root in an embed — so this watches the page and filters to ancestors.
+ */
+$effect(() => {
+	if (!loadMermaid || !body) return;
+	const root = body;
+
+	const observer = new MutationObserver((records) => {
+		if (records.some((record) => (record.target as Node).contains(root))) {
+			void renderMermaidIn(root, loadMermaid);
+		}
+	});
+	observer.observe(document.documentElement, {
+		subtree: true,
+		attributes: true,
+		attributeFilter: ["data-theme", "data-ld-style"],
+	});
+	return () => observer.disconnect();
+});
 
 // Intercept link clicks for in-app navigation
 function handleClick(e: MouseEvent) {
@@ -78,7 +125,7 @@ function handleClick(e: MouseEvent) {
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="markdown-body" onclick={handleClick}>
+<div class="markdown-body" onclick={handleClick} bind:this={body}>
 	{#if renderError}
 		<p class="render-error">{renderError}</p>
 	{:else}
@@ -241,6 +288,43 @@ function handleClick(e: MouseEvent) {
 		font-size: 12px;
 		color: var(--w-text-secondary);
 		font-style: italic;
+	}
+
+	/*
+	 * Mermaid diagrams. Mermaid sizes the SVG with an inline max-width at its
+	 * natural size; a diagram wider than the measure scrolls inside its own box,
+	 * like a table, rather than shrinking its labels past legibility.
+	 */
+	.markdown-body :global(.weft-mermaid) {
+		margin: 1em 0;
+		overflow-x: auto;
+		text-align: center;
+	}
+	.markdown-body :global(.weft-mermaid svg) {
+		height: auto;
+	}
+	.markdown-body :global(.weft-mermaid-error) {
+		margin: 1em 0;
+		padding: 8px 16px 1px;
+		border-left: 3px solid var(--ld-danger, #b3261e);
+		border-radius: 0 6px 6px 0;
+		background: var(--w-bg-secondary);
+	}
+	.markdown-body :global(.weft-mermaid-error p) {
+		margin: 0 0 8px;
+		font-size: 0.9em;
+		color: var(--w-text-secondary);
+	}
+	.markdown-body :global(.weft-mermaid-error strong) {
+		color: var(--ld-danger, #b3261e);
+	}
+	.markdown-body :global(.weft-mermaid-message) {
+		display: block;
+		margin-top: 4px;
+		overflow-x: auto;
+		font-family: var(--w-font-mono);
+		font-size: 0.85em;
+		white-space: pre;
 	}
 
 	/* Language chip, drawn from the data attribute the render pass records. */

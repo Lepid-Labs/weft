@@ -4,6 +4,7 @@ import "../app.css";
 import "../app-page.css";
 import { WEFT_CLIENT_KEY } from "$lib/client.js";
 import { ApiClient } from "$lib/clients/api.js";
+import { MERMAID_LOADER_KEY, type MermaidLoader } from "$lib/mermaid.js";
 import { loadRemoteStyles } from "$lib/style-loader.js";
 import { fontsFor, isBundledStyle, resolveStylePair } from "$lib/styles.js";
 import { setContext } from "svelte";
@@ -11,6 +12,14 @@ import type { Snippet } from "svelte";
 import type { LayoutData } from "./$types.js";
 
 setContext(WEFT_CLIENT_KEY, new ApiClient());
+
+// Mermaid as a lazy chunk of this app's own build: fetched only by a page that
+// has a diagram, and served by `weft serve` like every other asset, so it works
+// offline. Compiled out of the server build — diagrams are drawn in the browser.
+const loadMermaid: MermaidLoader | undefined = import.meta.env.SSR
+	? undefined
+	: () => import("mermaid").then((module) => module.default);
+setContext(MERMAID_LOADER_KEY, loadMermaid);
 
 let { children, data }: { children: Snippet; data: LayoutData } = $props();
 

@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
@@ -5,8 +6,15 @@ import { defineConfig } from "vite";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
+// The version the CDN loader pins (src/mermaid-cdn.ts): the one installed here,
+// so a lockfile bump is the whole cost of moving to a new mermaid.
+const { version: mermaidVersion } = createRequire(import.meta.url)("mermaid/package.json");
+
 export default defineConfig({
 	plugins: [svelte()],
+	define: {
+		__MERMAID_VERSION__: JSON.stringify(mermaidVersion),
+	},
 	build: {
 		lib: {
 			entry: path.resolve(__dirname, "src/index.ts"),

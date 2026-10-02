@@ -19,7 +19,7 @@ Full capability inventory mapped to use cases.
 ## Document Renderers
 *Supports: UC-1, UC-2, UC-3, UC-5, UC-6, UC-14, UC-15*
 
-- Markdown: rendered with heading anchors
+- Markdown: rendered with heading anchors; ` ```mermaid ` fences render as diagrams, as on GitHub (DD-14)
 - OpenAPI/Swagger YAML/JSON: interactive API explorer (operations, schemas, examples)
 - Code files: syntax-highlighted view with `@doc` reference highlights
 - Annotation documents: surfaced in **reviewing mode** alongside the target (layout in
