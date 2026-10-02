@@ -210,6 +210,14 @@ export interface WeftNode {
 	 */
 	hiddenFromNav?: boolean;
 	/**
+	 * Destinations, as written, of the links standing alone as a block — the
+	 * sole content of a paragraph or list item — which are the only places an
+	 * `includes` edge expands. Kept only on a document that includes something:
+	 * `include-link-missing` is the one reader, matching them against the
+	 * document's include edges with the renderer's own matcher.
+	 */
+	blockLinks?: string[];
+	/**
 	 * Hash of the document's content, for telling two copies apart and for
 	 * noticing that a generated output no longer reflects its source.
 	 *
@@ -276,9 +284,10 @@ export interface WeftEdge {
 	type: string;
 	label?: string;
 	/**
-	 * The link path as written, when it differed from the node it resolved to —
-	 * a link to a document's published form (`guide.html`) pointing at the source
-	 * it was rendered from (`guide.md`). Absent when the link already named a node.
+	 * The link as written, when it differed from the node it resolved to: a
+	 * GitHub blob URL into a mapped repo, or a link to a document's published
+	 * form (`guide.html`) pointing at the source it was rendered from
+	 * (`guide.md`). Absent when the link already named a node.
 	 */
 	resolvedFrom?: string;
 	/**

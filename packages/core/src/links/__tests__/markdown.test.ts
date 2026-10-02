@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DocsRoot } from "../../config.js";
-import { extractMarkdownLinks } from "../markdown.js";
+import { extractMarkdownLinks, scanMarkdownLinks } from "../markdown.js";
 
 const SINGLE: DocsRoot[] = [{ slug: "", dir: "docs", absDir: "/project/docs", external: false }];
 
@@ -217,6 +217,16 @@ describe("extractMarkdownLinks (GitHub blob URLs)", () => {
 		expect(extractMarkdownLinks(content, "/project/docs/README.md", ROOTS, REPOS)).toEqual([]);
 	});
 
+	it("decodes the fragment the way a relative link's is decoded", () => {
+		const edges = extractMarkdownLinks(
+			"[CV](https://github.com/acme/alpha/blob/main/docs/cv.md#r%C3%A9sum%C3%A9)",
+			"/project/docs/README.md",
+			ROOTS,
+			REPOS
+		);
+		expect(edges[0]?.to).toEqual({ node: "alpha/cv.md", anchor: "#résumé" });
+	});
+
 	it("ignores every http link when no repo map is passed", () => {
 		const edges = extractMarkdownLinks(
 			"[API](https://github.com/acme/alpha/blob/main/docs/api.md)",
@@ -309,5 +319,60 @@ describe("extractMarkdownLinks (percent-escapes)", () => {
 				label: "x",
 			},
 		]);
+	});
+});
+
+// Only a link standing alone as a block can expand an include, and
+// `include-link-missing` needs to know which those are. The test is the
+// renderer's, made on the rendered tree, so this has to follow how lists render.
+describe("scanMarkdownLinks (block links)", () => {
+	const blockLinks = (content: string) =>
+		scanMarkdownLinks(content, "/project/docs/a.md", SINGLE).blockLinks;
+
+	it("records a link that is a paragraph's sole content, as written", () => {
+		expect(blockLinks("Intro.\n\n[x](My%20Report.md#deploys)\n")).toEqual([
+			"My%20Report.md#deploys",
+		]);
+	});
+
+	it("records links of any destination, external ones included", () => {
+		const url = "https://github.com/acme/alpha/blob/main/docs/api.md#endpoints";
+		expect(blockLinks(`[API](${url})\n\n[Site](https://example.com)\n`)).toEqual([
+			url,
+			"https://example.com",
+		]);
+	});
+
+	it("skips a link woven into a sentence, or sharing its paragraph", () => {
+		expect(blockLinks("See [x](b.md) for more.\n")).toEqual([]);
+		expect(blockLinks("[x](b.md)\n[y](c.md)\n")).toEqual([]);
+	});
+
+	it("skips an anchor-only link", () => {
+		expect(blockLinks("[Jump](#section)\n")).toEqual([]);
+	});
+
+	it("records a link alone in a tight or a loose list item", () => {
+		expect(blockLinks("- [x](b.md)\n- plain\n")).toEqual(["b.md"]);
+		expect(blockLinks("- [x](b.md)\n\n- plain\n")).toEqual(["b.md"]);
+	});
+
+	// A tight item's paragraph is unwrapped when rendered, so the link shares the
+	// `li` with the nested list. A loose item keeps its `p`, and the link is alone
+	// in that.
+	it("follows list looseness for a link sharing its item with a nested list", () => {
+		expect(blockLinks("- [x](b.md)\n  - nested\n")).toEqual([]);
+		expect(blockLinks("- [x](b.md)\n\n  - nested\n")).toEqual(["b.md"]);
+	});
+
+	it("records a link alone in a paragraph inside a blockquote", () => {
+		expect(blockLinks("> [x](b.md)\n")).toEqual(["b.md"]);
+	});
+
+	it("returns the same edges extractMarkdownLinks does", () => {
+		const content = "[x](b.md#c)\n\nSee [y](d.md).\n";
+		expect(scanMarkdownLinks(content, "/project/docs/a.md", SINGLE).edges).toEqual(
+			extractMarkdownLinks(content, "/project/docs/a.md", SINGLE)
+		);
 	});
 });

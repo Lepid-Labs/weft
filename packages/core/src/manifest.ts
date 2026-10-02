@@ -17,8 +17,8 @@ import { type LoadedContribution, applyContributions, loadContributions } from "
 import { computeInputsHash } from "./freshness.js";
 import { parseFrontmatter } from "./frontmatter.js";
 import { lastCommitDates } from "./git.js";
-import { applyIncludeDefaults } from "./includes.js";
-import { extractMarkdownLinks } from "./links/markdown.js";
+import { INCLUDES, applyIncludeDefaults } from "./includes.js";
+import { scanMarkdownLinks } from "./links/markdown.js";
 import { extractSidecarLinks } from "./links/sidecar.js";
 import { resolvePublishedLinks } from "./published-links.js";
 import { resolveRepos } from "./repos.js";
@@ -107,6 +107,10 @@ export async function buildRootGraph(
 		// git reports forward slashes on every platform, glob does not.
 		const modified = modifiedDates.get(relative(docsDir, absPath).replace(/\\/g, "/"));
 
+		const links =
+			docType === "markdown" ? scanMarkdownLinks(body, absPath, roots, repoMap) : undefined;
+		if (links) edges.push(...links.edges);
+
 		nodes.push({
 			id: nodeIdFor(root, relative(docsDir, absPath)),
 			type: docType,
@@ -122,12 +126,8 @@ export async function buildRootGraph(
 			...(frontmatter.theme ? { theme: frontmatter.theme } : {}),
 			...(description ? { description } : {}),
 			...(frontmatter.ogImage ? { ogImage: frontmatter.ogImage } : {}),
+			...(links?.blockLinks.length ? { blockLinks: links.blockLinks } : {}),
 		});
-
-		// Extract links from markdown files
-		if (docType === "markdown") {
-			edges.push(...extractMarkdownLinks(body, absPath, roots, repoMap));
-		}
 	}
 
 	nodes.push(...(await findArtifacts(config, root, new Set(nodes.map((node) => node.id)))));
@@ -136,7 +136,7 @@ export async function buildRootGraph(
 	for (const sidecarFile of sidecarFiles) {
 		const absPath = resolve(docsDir, sidecarFile);
 		const content = readFileSync(absPath, "utf-8");
-		edges.push(...extractSidecarLinks(content, absPath, roots));
+		edges.push(...extractSidecarLinks(content, absPath, roots, repoMap));
 	}
 
 	return { nodes, edges };
@@ -186,6 +186,25 @@ async function findArtifacts(
 }
 
 /**
+ * Drop `blockLinks` from every node that includes nothing.
+ *
+ * Its one reader is `include-link-missing`, which only asks about documents
+ * with include edges; on the rest it would ship every link list in the corpus
+ * to every browser for nothing. Done here, after contributions, because a
+ * contributed edge can make a document an includer too.
+ */
+function keepBlockLinksOfIncluders(nodes: WeftNode[], edges: WeftEdge[]): WeftNode[] {
+	const includers = new Set(
+		edges.filter((edge) => edge.type === INCLUDES).map((edge) => edge.from.node)
+	);
+	return nodes.map((node) => {
+		if (!node.blockLinks || includers.has(node.id)) return node;
+		const { blockLinks: _, ...rest } = node;
+		return rest;
+	});
+}
+
+/**
  * Map a `docOrder` entry to a node id. Accepts a path relative to the project
  * root (`products/alpha/docs/features.md`), an already-qualified node id
  * (`alpha/features.md`), or a plain filename in single-project mode.
@@ -231,7 +250,6 @@ export function mergeGraphs(
 	// Contributions merge before ordering, so a contributed node sorts and
 	// honours docOrder exactly like an indexed one.
 	const merged = applyContributions({ nodes: scanned, edges: scannedEdges }, contributions);
-	let nodes: WeftNode[] = merged.nodes;
 	// After contributions, so a node the build declared can be what a published
 	// link resolves to. Include defaults are stamped last, over the full edge
 	// set, so a contributed include edge resolves the same way a sidecar's does.
@@ -239,6 +257,7 @@ export function mergeGraphs(
 		resolvePublishedLinks(merged.nodes, merged.edges),
 		config.includes
 	);
+	let nodes: WeftNode[] = keepBlockLinksOfIncluders(merged.nodes, edges);
 
 	nodes.sort((a, b) => a.id.localeCompare(b.id));
 

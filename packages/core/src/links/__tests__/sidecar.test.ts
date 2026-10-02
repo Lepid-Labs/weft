@@ -269,6 +269,41 @@ links:
 		});
 	});
 
+	it("resolves a GitHub blob URL target into a mapped repo, recording the URL", () => {
+		const url = "https://github.com/acme/alpha/blob/main/docs/api.md#r%C3%A9sum%C3%A9";
+		const roots: DocsRoot[] = [
+			{ slug: "meta", dir: "docs", absDir: "/project/docs", external: false },
+			{ slug: "alpha", dir: "docs", absDir: "/checkouts/alpha/docs", external: true },
+		];
+		const edges = extractSidecarLinks(
+			`links:\n  - target: ${url}\n    type: includes\n`,
+			"/project/docs/faq.md.weft",
+			roots,
+			new Map([["acme/alpha", "/checkouts/alpha"]])
+		);
+
+		expect(edges[0]).toEqual({
+			from: { node: "meta/faq.md" },
+			to: { node: "alpha/api.md", anchor: "#résumé" },
+			type: "includes",
+			label: undefined,
+			resolvedFrom: url,
+		});
+	});
+
+	it("still reads a blob URL into an unmapped repo as a path, so it reports as missing", () => {
+		const url = "https://github.com/acme/other/blob/main/docs/api.md";
+		const edges = extractSidecarLinks(
+			`links:\n  - target: ${url}\n`,
+			"/project/docs/faq.md.weft",
+			SINGLE,
+			new Map([["acme/alpha", "/checkouts/alpha"]])
+		);
+
+		expect(edges[0].to.node).toBe(url);
+		expect(edges[0].resolvedFrom).toBeUndefined();
+	});
+
 	it("returns empty for a sidecar outside every configured root", () => {
 		const content = `
 links:

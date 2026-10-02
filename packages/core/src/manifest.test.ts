@@ -319,6 +319,21 @@ describe("buildManifest (includes)", () => {
 		expect(edge?.contributes).toBe("source");
 	});
 
+	it("keeps block links only on a document that includes something", async () => {
+		const dir = includeFixture();
+		writeFileSync(
+			resolve(dir, "docs/README.md"),
+			"# Home\n\n[Overview](architecture.md#overview)\n"
+		);
+		writeFileSync(resolve(dir, "docs/other.md"), "# Other\n\n[Home](README.md)\n");
+		const manifest = await buildManifest(fixtureConfig({ rootDir: dir }));
+		const node = (id: string) => manifest.nodes.find((n) => n.id === id);
+
+		expect(node("README.md")?.blockLinks).toEqual(["architecture.md#overview"]);
+		expect(node("other.md")).toBeDefined();
+		expect(node("other.md")).not.toHaveProperty("blockLinks");
+	});
+
 	it("leaves other edge types unstamped", async () => {
 		const manifest = await buildManifest(fixtureConfig({ rootDir: includeFixture() }));
 
