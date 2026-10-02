@@ -226,3 +226,88 @@ describe("extractMarkdownLinks (GitHub blob URLs)", () => {
 		expect(edges).toEqual([]);
 	});
 });
+
+// A destination is read the way GitHub and every URL-following renderer read
+// it: `My%20Report.md` opens `My Report.md`. Taken as written it names a node
+// no document has, and the linked-items sidebar and the edge-resolution check
+// both treat a correct link as dead.
+describe("extractMarkdownLinks (percent-escapes)", () => {
+	const from = (content: string) => extractMarkdownLinks(content, "/project/docs/a.md", SINGLE);
+	const edge = (node: string, anchor?: string) => ({
+		from: { node: "a.md" },
+		to: anchor ? { node, anchor } : { node },
+		type: "references",
+		label: "x",
+	});
+
+	it("decodes an escaped space in the path", () => {
+		expect(from("[x](./My%20Report.md)")).toEqual([edge("My Report.md")]);
+	});
+
+	it("decodes an escaped directory segment and an escaped space in the fragment", () => {
+		expect(from("[x](sub/My%20Dir/x.md#Sec%20One)")).toEqual([edge("sub/My Dir/x.md", "#Sec One")]);
+	});
+
+	it("decodes a multi-byte UTF-8 fragment", () => {
+		expect(from("[x](c.md#r%C3%A9sum%C3%A9)")).toEqual([edge("c.md", "#résumé")]);
+	});
+
+	it("decodes an escaped percent sign", () => {
+		expect(from("[x](100%25.md)")).toEqual([edge("100%.md")]);
+	});
+
+	it("leaves a malformed escape as written instead of throwing", () => {
+		expect(from("[x](100%.md)")).toEqual([edge("100%.md")]);
+		// A lone high byte is not valid UTF-8 either: `decodeURIComponent` throws.
+		expect(from("[x](caf%E9.md#caf%E9)")).toEqual([edge("caf%E9.md", "#caf%E9")]);
+	});
+
+	// Decoding is all-or-nothing per part: the valid `%20` beside the malformed
+	// `%` is left as written too, and the edge is dead exactly as before.
+	it("leaves the whole part as written when a valid escape sits beside a malformed one", () => {
+		expect(from("[x](My%20Report%.md)")).toEqual([edge("My%20Report%.md")]);
+	});
+
+	it("still reads the angle-bracket form, which needs no escape", () => {
+		expect(from("[x](<My Report.md>)")).toEqual([edge("My Report.md")]);
+	});
+
+	// The template check runs on the raw destination, so an encoded `{{` is not a
+	// placeholder an author wrote: this yields an edge to the decoded literal,
+	// the file name the URL spells.
+	it("checks template syntax on the raw text, then decodes", () => {
+		expect(from("[x](%7B%7Bversion%7D%7D/api.md)")).toEqual([edge("{{version}}/api.md")]);
+	});
+
+	// `decodeURI` would leave these reserved characters escaped, and decoding the
+	// whole destination before splitting it would read an escaped `#` as the
+	// start of the fragment.
+	it("decodes an escaped reserved character in the path and in the fragment", () => {
+		expect(from("[x](a%23b.md)")).toEqual([edge("a#b.md")]);
+		expect(from("[x](a%2Bb.md)")).toEqual([edge("a+b.md")]);
+		expect(from("[x](c.md#a%23b)")).toEqual([edge("c.md", "#a#b")]);
+	});
+
+	it("leaves a literal plus sign alone: only `%2B` spells it, and neither is a space", () => {
+		expect(from("[x](a+b.md#c+d)")).toEqual([edge("a+b.md", "#c+d")]);
+	});
+
+	// A destination is decoded once: `%2520` is the escaped text `%20`.
+	it("decodes once, not twice", () => {
+		expect(from("[x](100%2520.md#a%2520b)")).toEqual([edge("100%20.md", "#a%20b")]);
+	});
+
+	// Only the destination is decoded. The source file's own directory is a real
+	// path, so a directory literally named `100%25` is not read as `100%`.
+	it("does not decode the source file's own directory", () => {
+		const edges = extractMarkdownLinks("[x](b.md)", "/project/docs/100%25/a.md", SINGLE);
+		expect(edges).toEqual([
+			{
+				from: { node: "100%25/a.md" },
+				to: { node: "100%25/b.md" },
+				type: "references",
+				label: "x",
+			},
+		]);
+	});
+});
