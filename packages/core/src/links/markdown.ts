@@ -28,7 +28,25 @@ function toPosix(path: string): string {
 }
 
 /**
+ * Percent-decode a link destination part (`My%20Report.md` -> `My Report.md`).
+ * `decodeURIComponent` throws on a malformed escape, and a literal `%` in a file
+ * name (`100%.md`) is legal, so a part that does not decode is returned as
+ * written, whole: its valid escapes are left alone too. Uncaught, the throw
+ * would fail the whole manifest build, not just this link.
+ */
+function decodePercent(text: string): string {
+	try {
+		return decodeURIComponent(text);
+	} catch {
+		return text;
+	}
+}
+
+/**
  * Extract graph edges from Markdown content.
+ * A destination is read the way a URL-following renderer reads it, with its
+ * percent-escapes decoded, so `My%20Report.md` names `My Report.md` as it does
+ * on GitHub.
  * A link is a graph edge if it targets a file within any configured docs root —
  * a link that leaves its own root but lands in another project's root becomes a
  * cross-project edge rather than being dropped. A GitHub blob URL into a repo
@@ -85,8 +103,10 @@ export function extractMarkdownLinks(
 			// as broken.
 			if (TEMPLATE_SYNTAX.test(pathPart)) continue;
 
-			absTarget = resolve(fileDir, pathPart);
-			anchor = fragment;
+			// The template check above ran on the raw text: an encoded `%7B%7B` is
+			// not a placeholder an author wrote.
+			absTarget = resolve(fileDir, decodePercent(pathPart));
+			anchor = fragment === undefined ? undefined : decodePercent(fragment);
 		}
 
 		const targetRoot = rootForPath(roots, absTarget);
