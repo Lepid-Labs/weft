@@ -4,6 +4,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import { type DocsRoot, nodeIdFor, rootForPath } from "../config.js";
+import { decodePercent } from "../percent.js";
 import { type RepoMap, parseGitHubBlobUrl } from "../repos.js";
 import type { LinkRef, WeftEdge } from "../types.js";
 
@@ -25,21 +26,6 @@ const TEMPLATE_SYNTAX = /\{\{|\{%|\$\{|<%/;
  */
 function toPosix(path: string): string {
 	return path.split(sep).join("/");
-}
-
-/**
- * Percent-decode a link destination part (`My%20Report.md` -> `My Report.md`).
- * `decodeURIComponent` throws on a malformed escape, and a literal `%` in a file
- * name (`100%.md`) is legal, so a part that does not decode is returned as
- * written, whole: its valid escapes are left alone too. Uncaught, the throw
- * would fail the whole manifest build, not just this link.
- */
-function decodePercent(text: string): string {
-	try {
-		return decodeURIComponent(text);
-	} catch {
-		return text;
-	}
 }
 
 /**

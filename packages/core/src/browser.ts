@@ -8,7 +8,13 @@ export {
 	parseOpenApiSpec,
 } from "./anchors/openapi.js";
 export { nodeIdToDocPath } from "./node-path.js";
-export { INCLUDES, INCLUDE_DEFAULTS, extractSection } from "./includes.js";
+export {
+	INCLUDES,
+	INCLUDE_DEFAULTS,
+	extractSection,
+	includeMatcher,
+	resolveHref,
+} from "./includes.js";
 export type { SectionRange } from "./includes.js";
 export type {
 	Anchor,

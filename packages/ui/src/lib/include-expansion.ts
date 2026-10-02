@@ -1,4 +1,4 @@
-import { INCLUDES, type WeftEdge, extractSection } from "@lepid-labs/weft-core/browser";
+import { type WeftEdge, extractSection, includeMatcher } from "@lepid-labs/weft-core/browser";
 import type { Element, ElementContent, Root } from "hast";
 
 /**
@@ -108,10 +108,8 @@ export async function expandIncludes(
  * the level must come from position, not from resolution order.
  */
 function collectCandidates(tree: Root, context: IncludeContext): Candidate[] {
-	const includes = context.edges.filter(
-		(edge) => edge.type === INCLUDES && !edge.pending && edge.from.node === context.nodeId
-	);
-	if (!includes.length) return [];
+	const match = includeMatcher(context.nodeId, context.edges);
+	if (!match) return [];
 
 	const candidates: Candidate[] = [];
 	let level = 0;
@@ -127,7 +125,8 @@ function collectCandidates(tree: Root, context: IncludeContext): Candidate[] {
 			}
 
 			const link = soleBlockLink(child);
-			const edge = link && matchEdge(link, includes, context.nodeId);
+			const href = link?.properties?.href;
+			const edge = typeof href === "string" && href !== "" ? match(href) : undefined;
 			if (link && edge) {
 				candidates.push({
 					container: child,
@@ -161,43 +160,6 @@ function soleBlockLink(element: Element): Element | undefined {
 	// A loose list item wraps its content in a paragraph.
 	if (element.tagName === "li" && only.tagName === "p") return soleBlockLink(only);
 	return undefined;
-}
-
-/** The include edge this link declares, if any. */
-function matchEdge(link: Element, includes: WeftEdge[], nodeId: string): WeftEdge | undefined {
-	const href = link.properties?.href;
-	if (typeof href !== "string" || href === "") return undefined;
-
-	const [path, anchor] = href.split("#");
-	const slug = anchor ? `#${anchor}` : undefined;
-	const resolved = resolveHref(nodeId, path);
-
-	return includes.find(
-		(edge) =>
-			(edge.to.node === resolved || edge.resolvedFrom === path) &&
-			(edge.to.anchor ?? "") === (slug ?? "")
-	);
-}
-
-/**
- * Resolve a relative href against the current node id's directory, the same
- * arithmetic link extraction did when it made the edge. A path that escapes
- * the docs root resolves to nothing — such a link never became an edge.
- */
-export function resolveHref(nodeId: string, href: string): string | undefined {
-	if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return undefined;
-
-	const base = nodeId.split("/").slice(0, -1);
-	for (const segment of href.split("/")) {
-		if (segment === "" || segment === ".") continue;
-		if (segment === "..") {
-			if (!base.length) return undefined;
-			base.pop();
-			continue;
-		}
-		base.push(segment);
-	}
-	return base.join("/") || undefined;
 }
 
 /** Shift every heading by `delta` levels, clamped to h1–h6. */

@@ -34,6 +34,8 @@ export {
 	INCLUDE_DEFAULTS,
 	applyIncludeDefaults,
 	extractSection,
+	includeMatcher,
+	resolveHref,
 } from "./includes.js";
 export type { SectionRange } from "./includes.js";
 export type { FileHistory, HistoryDepth } from "./git.js";

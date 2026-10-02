@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { INCLUDES, applyIncludeDefaults, extractSection } from "./includes.js";
+import {
+	INCLUDES,
+	applyIncludeDefaults,
+	extractSection,
+	includeMatcher,
+	resolveHref,
+} from "./includes.js";
 import type { WeftEdge } from "./types.js";
 
 const DOC = `# Guide
@@ -130,5 +136,110 @@ describe("applyIncludeDefaults", () => {
 
 		expect("headingShift" in edge).toBe(false);
 		expect("contributes" in edge).toBe(false);
+	});
+});
+
+describe("includeMatcher", () => {
+	const include = (from: string, to: string, anchor?: string, extra: Partial<WeftEdge> = {}) =>
+		({
+			from: { node: from },
+			to: { node: to, ...(anchor ? { anchor } : {}) },
+			type: INCLUDES,
+			...extra,
+		}) as WeftEdge;
+
+	const BLOB = "https://github.com/acme/alpha/blob/main/docs/api.md#endpoints";
+	const blobReference: WeftEdge = {
+		from: { node: "faq.md" },
+		to: { node: "alpha/api.md", anchor: "#endpoints" },
+		type: "references",
+		resolvedFrom: BLOB,
+	};
+
+	it("is undefined for a document that includes nothing", () => {
+		expect(includeMatcher("faq.md", [include("other.md", "runbook.md")])).toBeUndefined();
+		const pending = include("faq.md", "x.md", undefined, { pending: true });
+		expect(includeMatcher("faq.md", [pending])).toBeUndefined();
+	});
+
+	it("matches a relative link by node and anchor", () => {
+		const edge = include("guides/faq.md", "runbook.md", "#deploys");
+		const match = includeMatcher("guides/faq.md", [edge]);
+
+		expect(match?.("../runbook.md#deploys")).toBe(edge);
+		expect(match?.("../runbook.md")).toBeUndefined();
+		expect(match?.("../runbook.md#monitoring")).toBeUndefined();
+	});
+
+	it("matches a GitHub blob URL through the edge extraction made from it", () => {
+		const edge = include("faq.md", "alpha/api.md", "#endpoints");
+		const match = includeMatcher("faq.md", [edge, blobReference]);
+
+		expect(match?.(BLOB)).toBe(edge);
+	});
+
+	it("does not match a blob URL extraction never resolved", () => {
+		const edge = include("faq.md", "alpha/api.md", "#endpoints");
+		const match = includeMatcher("faq.md", [edge]);
+
+		expect(match?.(BLOB)).toBeUndefined();
+	});
+
+	it("only consults edges made from links in this document", () => {
+		const edge = include("faq.md", "alpha/api.md", "#endpoints");
+		const elsewhere = { ...blobReference, from: { node: "other.md" } };
+
+		expect(includeMatcher("faq.md", [edge, elsewhere])?.(BLOB)).toBeUndefined();
+	});
+
+	// The renderer re-encodes what it does not consider URL-safe, and link
+	// extraction decodes escapes: both spellings name the same target.
+	it("matches a link however its escapes are spelled", () => {
+		const spaced = include("faq.md", "My Report.md", "#résumé");
+		const blobbed = include("faq.md", "alpha/café.md");
+		const reference: WeftEdge = {
+			from: { node: "faq.md" },
+			to: { node: "alpha/café.md" },
+			type: "references",
+			resolvedFrom: "https://github.com/acme/alpha/blob/main/docs/café.md",
+		};
+		const match = includeMatcher("faq.md", [spaced, blobbed, reference]);
+
+		expect(match?.("My%20Report.md#r%C3%A9sum%C3%A9")).toBe(spaced);
+		expect(match?.("https://github.com/acme/alpha/blob/main/docs/caf%C3%A9.md")).toBe(blobbed);
+	});
+
+	it("matches a published-form link to the include it resolved from, in a subdirectory", () => {
+		const edge = include("sub/faq.md", "sub/guide.md", undefined, {
+			resolvedFrom: "sub/guide.html",
+		});
+
+		expect(includeMatcher("sub/faq.md", [edge])?.("guide.html")).toBe(edge);
+	});
+
+	it("ignores pending includes and anchor-only links", () => {
+		const pending = include("faq.md", "runbook.md", undefined, { pending: true });
+		const live = include("faq.md", "pricing.md");
+		const match = includeMatcher("faq.md", [pending, live]);
+
+		expect(match?.("runbook.md")).toBeUndefined();
+		expect(match?.("#pricing")).toBeUndefined();
+		expect(match?.("pricing.md")).toBe(live);
+	});
+});
+
+describe("resolveHref", () => {
+	it("resolves a sibling", () => {
+		expect(resolveHref("guides/faq.md", "setup.md")).toBe("guides/setup.md");
+	});
+	it("resolves ./ and ../", () => {
+		expect(resolveHref("guides/faq.md", "./setup.md")).toBe("guides/setup.md");
+		expect(resolveHref("guides/faq.md", "../intro.md")).toBe("intro.md");
+	});
+	it("returns undefined for a path escaping the root", () => {
+		expect(resolveHref("faq.md", "../outside.md")).toBeUndefined();
+	});
+	it("returns undefined for an absolute URL", () => {
+		expect(resolveHref("faq.md", "https://example.com/x.md")).toBeUndefined();
 	});
 });
