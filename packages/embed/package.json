@@ -22,7 +22,7 @@
 	"unpkg": "dist/weft.iife.js",
 	"jsdelivr": "dist/weft.iife.js",
 	"scripts": {
-		"build": "vite build && node scripts/check-scoping.mjs",
+		"build": "vite build && node scripts/check-scoping.mjs && node scripts/check-mermaid.mjs",
 		"dev": "vite build --watch",
 		"typecheck": "tsc --noEmit",
 		"prepublishOnly": "pnpm run build"

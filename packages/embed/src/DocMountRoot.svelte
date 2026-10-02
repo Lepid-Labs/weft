@@ -2,9 +2,11 @@
 import { WEFT_CLIENT_KEY, type WeftClient } from "$lib/client.js";
 import DocReader from "$lib/components/DocReader.svelte";
 import type { RenderOptions } from "$lib/markdown.js";
+import { MERMAID_LOADER_KEY, type MermaidLoader } from "$lib/mermaid.js";
 import type { Manifest, StyleConfig } from "@lepid-labs/weft-core/browser";
 import { setContext } from "svelte";
 import type { DocState } from "./doc-state.svelte.js";
+import { mermaidLoader } from "./mermaid-cdn.js";
 
 // Tokens and scoped base styles. Not `app-page.css` — a host's page keeps its
 // own reset, fonts and background.
@@ -16,6 +18,7 @@ interface Props extends RenderOptions {
 	state: DocState;
 	linkedItems?: boolean;
 	style?: StyleConfig;
+	mermaid?: false | MermaidLoader;
 	onnavigate?: (nodeId: string, anchor?: string) => void;
 }
 
@@ -25,6 +28,7 @@ let {
 	state,
 	linkedItems = false,
 	style,
+	mermaid,
 	onnavigate,
 	remarkPlugins,
 	rehypePlugins,
@@ -34,6 +38,8 @@ let {
 // The host's client, injected the same way the app injects its own.
 // svelte-ignore state_referenced_locally — the client is fixed for the mount's life
 setContext(WEFT_CLIENT_KEY, client);
+// svelte-ignore state_referenced_locally — as is how mermaid is loaded
+setContext(MERMAID_LOADER_KEY, mermaidLoader(mermaid));
 </script>
 
 <DocReader

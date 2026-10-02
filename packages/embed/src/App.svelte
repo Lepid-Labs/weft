@@ -1,12 +1,14 @@
 <script lang="ts">
 import { WEFT_CLIENT_KEY } from "$lib/client.js";
 import WeftApp from "$lib/components/WeftApp.svelte";
+import { MERMAID_LOADER_KEY } from "$lib/mermaid.js";
 import { resolveStylePair } from "$lib/styles.js";
 import { pathToNode } from "$lib/utils/paths.js";
 import type { Manifest } from "@lepid-labs/weft-core/browser";
 import { setContext } from "svelte";
 import { GitHubClient } from "./github.js";
 import type { EmbedConfig } from "./index.js";
+import { mermaidLoader } from "./mermaid-cdn.js";
 
 // Import base styles so they're bundled into weft.css
 import "$lib/../app.css";
@@ -26,6 +28,8 @@ const stylePair = resolveStylePair(config.style);
 // svelte-ignore state_referenced_locally — config is static after mount
 const client = new GitHubClient(config);
 setContext(WEFT_CLIENT_KEY, client);
+// svelte-ignore state_referenced_locally — config is static after mount
+setContext(MERMAID_LOADER_KEY, mermaidLoader(config.mermaid));
 
 let manifest = $state<Manifest | null>(null);
 let loadError = $state("");
