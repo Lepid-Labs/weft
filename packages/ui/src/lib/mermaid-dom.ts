@@ -69,11 +69,18 @@ function errorBlock(message: string, source: string): HTMLElement {
 	const box = document.createElement("div");
 	box.className = "weft-mermaid-error";
 
-	const notice = document.createElement("p");
 	const label = document.createElement("strong");
 	label.textContent = "Diagram could not be rendered.";
+
+	// Whitespace kept: a parse error points at the fault with a `^` under the
+	// quoted line, which reflowed as prose points at nothing.
 	// textContent, never innerHTML: mermaid's messages quote the source.
-	notice.append(label, ` ${message}`);
+	const detail = document.createElement("span");
+	detail.className = "weft-mermaid-message";
+	detail.textContent = message;
+
+	const notice = document.createElement("p");
+	notice.append(label, detail);
 
 	const pre = document.createElement("pre");
 	const code = document.createElement("code");

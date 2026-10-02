@@ -318,6 +318,14 @@ function handleClick(e: MouseEvent) {
 	.markdown-body :global(.weft-mermaid-error strong) {
 		color: var(--ld-danger, #b3261e);
 	}
+	.markdown-body :global(.weft-mermaid-message) {
+		display: block;
+		margin-top: 4px;
+		overflow-x: auto;
+		font-family: var(--w-font-mono);
+		font-size: 0.85em;
+		white-space: pre;
+	}
 
 	/* Language chip, drawn from the data attribute the render pass records. */
 	.markdown-body :global(pre[data-lang]) {
