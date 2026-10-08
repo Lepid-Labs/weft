@@ -205,11 +205,12 @@ function keepBlockLinksOfIncluders(nodes: WeftNode[], edges: WeftEdge[]): WeftNo
 }
 
 /**
- * Map a `docOrder` entry to a node id. Accepts a path relative to the project
- * root (`products/alpha/docs/features.md`), an already-qualified node id
- * (`alpha/features.md`), or a plain filename in single-project mode.
+ * Map a config entry naming a document (`docOrder`, `entryPoint`) to a node id.
+ * Accepts a path relative to the project root (`products/alpha/docs/features.md`),
+ * an already-qualified node id (`alpha/features.md`), or a plain filename in
+ * single-project mode.
  */
-function normalizeDocOrderEntry(entry: string, roots: DocsRoot[]): string {
+function configPathToNodeId(entry: string, roots: DocsRoot[]): string {
 	const path = entry.replace(/\\/g, "/").replace(/^\.\//, "");
 	// A repo-backed root's `dir` is relative to its checkout, not the project
 	// root, so matching it here would collide with a sibling root that really
@@ -262,7 +263,7 @@ export function mergeGraphs(
 	nodes.sort((a, b) => a.id.localeCompare(b.id));
 
 	if (config.docOrder?.length) {
-		const order = config.docOrder.map((entry) => normalizeDocOrderEntry(entry, roots));
+		const order = config.docOrder.map((entry) => configPathToNodeId(entry, roots));
 
 		nodes.sort((a, b) => {
 			const ai = order.indexOf(a.id);
@@ -284,7 +285,7 @@ export function mergeGraphs(
 	}
 
 	const projects = projectRefs(roots);
-	const site = siteConfig(config);
+	const site = siteConfig(config, entryPointNodeId(config, roots, nodes));
 
 	return {
 		version: MANIFEST_VERSION,
@@ -296,8 +297,24 @@ export function mergeGraphs(
 	};
 }
 
+/**
+ * The node `entryPoint` names, if it names a document. An artifact is left out:
+ * the reader cannot open one, so landing on it would show an error page.
+ * An entry point that names nothing is the `entry-point-missing` rule's to
+ * report; here it simply leaves the default landing in place.
+ */
+function entryPointNodeId(
+	config: WeftConfig,
+	roots: DocsRoot[],
+	nodes: WeftNode[]
+): string | undefined {
+	if (!config.entryPoint) return undefined;
+	const id = configPathToNodeId(config.entryPoint, roots);
+	return nodes.some((node) => node.id === id && node.type !== "artifact") ? id : undefined;
+}
+
 /** Extract the presentation fields the UI consumes. Undefined when none are set. */
-function siteConfig(config: WeftConfig): SiteConfig | undefined {
+function siteConfig(config: WeftConfig, entryPoint: string | undefined): SiteConfig | undefined {
 	const site: SiteConfig = {};
 	if (config.defaultTheme) site.defaultTheme = config.defaultTheme;
 	if (config.style) site.style = config.style;
@@ -306,6 +323,7 @@ function siteConfig(config: WeftConfig): SiteConfig | undefined {
 	if (config.siteTitle) site.siteTitle = config.siteTitle;
 	if (config.siteUrl) site.siteUrl = config.siteUrl;
 	if (config.ogImage) site.ogImage = config.ogImage;
+	if (entryPoint) site.entryPoint = entryPoint;
 	return Object.keys(site).length ? site : undefined;
 }
 

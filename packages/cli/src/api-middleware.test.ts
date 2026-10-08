@@ -15,7 +15,6 @@ beforeAll(async () => {
 	service = new WeftService({
 		rootDir: FIXTURES_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 	});
 	await service.rebuild();

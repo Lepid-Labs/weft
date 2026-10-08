@@ -3,7 +3,7 @@ import { WEFT_CLIENT_KEY } from "$lib/client.js";
 import WeftApp from "$lib/components/WeftApp.svelte";
 import { MERMAID_LOADER_KEY } from "$lib/mermaid.js";
 import { resolveStylePair } from "$lib/styles.js";
-import { pathToNode } from "$lib/utils/paths.js";
+import { pathToNode, rootNodeId } from "$lib/utils/paths.js";
 import type { Manifest } from "@lepid-labs/weft-core/browser";
 import { setContext } from "svelte";
 import { GitHubClient } from "./github.js";
@@ -46,10 +46,13 @@ async function load() {
 		client.buildIndex(data);
 		manifest = data;
 		const firstProject = data.projects?.[0]?.slug;
-		// Open a document the nav actually lists: docOrderStrict keeps hidden docs
-		// in the graph, so a README excluded from docOrder is still a node here.
+		// Open the configured entry point, which core only records once it names a
+		// document. Otherwise open a document the nav actually lists: docOrderStrict
+		// keeps hidden docs in the graph, so a README excluded from docOrder is
+		// still a node here.
 		const visible = data.nodes.filter((n) => !n.hiddenFromNav);
 		currentNodeId =
+			data.site?.entryPoint ??
 			visible.find((n) => n.id === "README.md")?.id ??
 			(firstProject ? visible.find((n) => n.id === `${firstProject}/README.md`)?.id : undefined) ??
 			visible[0]?.id ??
@@ -80,7 +83,7 @@ load();
 		rehypePlugins={config.rehypePlugins}
 		extendSchema={config.extendSchema}
 		navigate={(path) => {
-			const nodeId = pathToNode(path.split("#")[0], manifest!.nodes)?.id;
+			const nodeId = pathToNode(path.split("#")[0], manifest!.nodes, rootNodeId(manifest!))?.id;
 			if (nodeId) currentNodeId = nodeId;
 		}}
 	/>

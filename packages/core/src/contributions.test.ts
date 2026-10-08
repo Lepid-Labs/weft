@@ -30,7 +30,6 @@ function config(root: string, contributions?: string[]): WeftConfig {
 	return {
 		rootDir: resolve(root),
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		...(contributions ? { contributions } : {}),
 	};

@@ -25,7 +25,9 @@ opens a new tab.
 
 Status: agreed
 
-When no document is named, the UI opens the configured entry document, `docs/README.md` by default.
+When no document is named, the UI and the full embed open the configured entry document. Without one, they open the
+docs root's README, else the first document the nav lists. Every document, the README included, stays reachable at a
+URL of its own.
 
 Supports UC-005.
 

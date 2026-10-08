@@ -21,7 +21,6 @@ function createService(): WeftService {
 	const config: WeftConfig = {
 		rootDir: FIXTURES_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 	};
 	return new WeftService(config);
@@ -31,7 +30,6 @@ function createMonorepoService(rootDir = MONOREPO_DIR): WeftService {
 	const config: WeftConfig = {
 		rootDir,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		projects: PROJECTS,
 	};
@@ -134,7 +132,6 @@ describe("WeftService", () => {
 		const service = new WeftService({
 			rootDir: dir,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 		});
 
@@ -150,7 +147,6 @@ describe("WeftService (artifacts)", () => {
 		return new WeftService({
 			rootDir: ARTIFACTS_DIR,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			artifacts: ["**/*.pdf"],
 		});
@@ -326,7 +322,6 @@ describe("WeftService (freshness)", () => {
 		const service = new WeftService({
 			rootDir: dir,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 		});
 		return { dir, service };

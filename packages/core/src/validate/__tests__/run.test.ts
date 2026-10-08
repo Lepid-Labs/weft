@@ -30,7 +30,6 @@ function config(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: "/project",
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		...overrides,
 	};

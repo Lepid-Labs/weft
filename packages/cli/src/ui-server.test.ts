@@ -70,7 +70,6 @@ describe("routeRequest", () => {
 		const service = new WeftService({
 			rootDir: FIXTURES_DIR,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 		});
 		await service.rebuild();
@@ -213,7 +212,6 @@ describe("startBuiltServer", () => {
 		const service = new WeftService({
 			rootDir: FIXTURES_DIR,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 		});
 		const occupant = createServer((_req, res) => res.end("not weft"));

@@ -45,7 +45,13 @@ export interface WeftProjectRef {
 export interface WeftConfig {
 	rootDir: string;
 	docsDir: string;
-	entryPoint: string;
+	/**
+	 * The document the UI opens at its root URL, as a path relative to the
+	 * project root (`docs/overview.md`) or a node id (`overview.md`,
+	 * `alpha/overview.md`). Unset, the root is the docs root's README, or the
+	 * first document the nav lists.
+	 */
+	entryPoint?: string;
 	ignore: string[];
 	/**
 	 * Multiple docs roots, one per product. When set, node ids are namespaced by
@@ -342,6 +348,11 @@ export interface SiteConfig {
 	siteTitle?: string;
 	siteUrl?: string;
 	ogImage?: string;
+	/**
+	 * Node id of the configured `entryPoint`. Present only when it names an
+	 * indexed document, so a consumer can open it without checking.
+	 */
+	entryPoint?: string;
 }
 
 /**

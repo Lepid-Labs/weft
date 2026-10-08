@@ -43,7 +43,7 @@ A gitignored `weft.config.local.yaml` beside it may override a few options for o
 | `docsDir` | `string` | `"docs"` | Directory to scan for documents, relative to project root. Ignored when `projects` is set |
 | `projects` | `WeftProject[]` | — | Multiple docs roots, one per product — see [Index several projects](multiple-projects.md) |
 | `repos` | `Record<string, string>` | — | Local checkouts of other repos, keyed by `org/repo` — see [Combine docs from several repositories](multiple-repositories.md) |
-| `entryPoint` | `string` | `"docs/README.md"` | Default document opened when no path is specified |
+| `entryPoint` | `string` | — | The document the UI opens at `/`, as a path relative to the project root (`docs/overview.md`) or a node id (`overview.md`, `alpha/overview.md`). Unset, `/` is the docs root's README, else the first document in the nav. With it set, a top-level README moves to `/README`. A value that names no document is reported by [`entry-point-missing`](validation.md#rules) |
 | `siteTitle` | `string` | — | Site name shown in the header, and used in `og:site_name` and the page title (`Doc — Site`). The header reads "Weft" when unset |
 | `siteUrl` | `string` | — | Canonical base URL (e.g. `https://docs.example.com`). Required for absolute `og:image` URLs |
 | `ogImage` | `string` | — | Default `og:image`. Relative to project root or an absolute URL. Overridden per-document via [frontmatter](#per-document-frontmatter) |

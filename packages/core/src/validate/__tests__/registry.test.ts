@@ -89,6 +89,7 @@ describe("defaultRegistry", () => {
 			"node-diverged",
 			"include-cycle",
 			"include-link-missing",
+			"entry-point-missing",
 		]);
 	});
 

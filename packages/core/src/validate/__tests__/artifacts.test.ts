@@ -10,7 +10,6 @@ import { validateManifest } from "../run.js";
 const CONFIG: WeftConfig = {
 	rootDir: "/project",
 	docsDir: "docs",
-	entryPoint: "docs/README.md",
 	ignore: [],
 };
 
@@ -212,7 +211,6 @@ describe("artifact staleness (over a real docs tree)", () => {
 	const config: WeftConfig = {
 		rootDir: FIXTURE,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		artifacts: ["**/*.pdf"],
 	};

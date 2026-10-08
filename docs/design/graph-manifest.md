@@ -101,7 +101,9 @@ repositories, so none can regress silently.
 - **Manifest** ([types.ts](../../packages/core/src/types.ts), `Manifest`, `WeftNode`, `WeftEdge`, `Anchor`). JSON,
   currently `version: 2`; version 2 made anchors objects. Top level: `nodes`, `edges`, and the optional `projects`
   (multi-project only), `site` (presentation config for the UI) and `build`
-  ([manifest freshness](manifest-freshness.md)).
+  ([manifest freshness](manifest-freshness.md)). `site.entryPoint` is the node id the configured `entryPoint`
+  resolved to; core writes it only when that names an indexed document that is not an artifact, so a consumer can
+  open it without checking.
   A per-project manifest (`ProjectManifest`) holds that project's nodes and the edges originating in it; targets may
   point into other projects. `projects.json` (`ProjectsIndex`) lists each project's manifest path and the merged one's.
 - **Node ids** are the file's path relative to its docs root, with `/` separators, prefixed by the project slug in

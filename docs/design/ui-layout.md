@@ -51,6 +51,13 @@ calling the `navigate(path)` its host supplies, where a node id maps to a path a
 standalone app that is a SvelteKit route, so browser back and forward work; `mountWeft` switches documents inside its
 container without touching the page's URL, and `mountDoc` hands navigation to the host ([embedding](embedding.md)).
 
+A node id maps to a path by dropping its extension, and a README is addressed by its directory (`alpha/README.md` is
+`/alpha`). `/` is the root document: the manifest's `site.entryPoint` when one is configured, else the top-level
+README. With an entry point set, a top-level README is `/README` instead, so it stays reachable. A path that names no
+document lands on the root document, then the first project's README, then the first document the nav lists.
+[paths.ts](../../packages/ui/src/lib/utils/paths.ts) holds the mapping for the app and the embed alike; the embed
+opens the entry point first too.
+
 Planned: a navigation stack with breadcrumb display (push on navigate, pop on Back). A store for it exists in
 [navigation.ts](../../packages/ui/src/lib/stores/navigation.ts), but no component renders it yet.
 

@@ -64,6 +64,7 @@ check supplied by an external tool — still loads.
 | `node-diverged` | `warn` | Documents that once held identical content no longer match |
 | `include-cycle` | `error` | Documents include each other in a cycle, so no composed form of them exists |
 | `include-link-missing` | `warn` | An include edge matches no link standing alone in its document, so nothing expands |
+| `entry-point-missing` | `warn` | The configured `entryPoint` names no document, so the UI opens its default instead |
 | `validator-error` | `error` | A rule threw while running |
 
 The artifact rules are explained in [Staleness](generated-artifacts.md#staleness), and the include rules in
