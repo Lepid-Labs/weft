@@ -26,7 +26,8 @@ publishing.**
 - Core's `types`/`exports` point at `src/` for the workspace, and `publishConfig` swaps them to `dist/` at pack time:
   one `package.json`, two audiences. `pnpm pack` is the check that the published shape is right.
 - `vite` is an optional peer of the CLI: only `--dev` imports it, and the import failure names the reason.
-- Release is `just release <version>`, then a tag, then the Release workflow runs `pnpm -r publish` with provenance,
+- Release is a `chore: release v<version>` pull request (`just release <version>`), then a tag on `main`'s squash
+  commit of it (`just release-tag <version>`), then the Release workflow runs `pnpm -r publish` with provenance,
   authenticated by npm trusted publishing (OIDC) rather than a token secret. Each package's `prepublishOnly` builds
   it, and pnpm skips versions already on npm.
 - The CLI reads its version from its own `package.json`, so one script (`scripts/set-version.mjs`) is the whole bump.
