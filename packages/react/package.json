@@ -1,0 +1,46 @@
+{
+	"name": "@lepid-labs/weft-react",
+	"version": "0.3.0",
+	"description": "A React component that renders one section of a docs file inline, live from its source",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Lepid-Labs/weft.git",
+		"directory": "packages/react"
+	},
+	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/usage.md#react",
+	"type": "module",
+	"files": ["dist"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./style.css": "./dist/style.css",
+		"./package.json": "./package.json"
+	},
+	"sideEffects": ["*.css"],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json && node scripts/copy-style.mjs",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"prepublishOnly": "pnpm run build"
+	},
+	"dependencies": {
+		"@lepid-labs/weft-embed": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
+		"typescript": "^5.7.0",
+		"vitest": "^4.1.11"
+	}
+}

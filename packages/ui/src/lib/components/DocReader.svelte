@@ -1,6 +1,6 @@
 <script lang="ts">
+import { hostTheme } from "$lib/host-theme.svelte.js";
 import type { RenderOptions } from "$lib/markdown.js";
-import { resolveStylePair } from "$lib/styles.js";
 import type { Manifest, StyleConfig } from "@lepid-labs/weft-core";
 import DocView from "./DocView.svelte";
 import LinkedItems from "./LinkedItems.svelte";
@@ -35,63 +35,14 @@ let {
 	extendSchema,
 }: Props = $props();
 
-let stylePair = $derived(resolveStylePair(style));
-
 let currentNode = $derived(manifest.nodes.find((node) => node.id === nodeId) ?? null);
 
 let root: HTMLDivElement | undefined = $state();
-let inheritedTheme = $state<string | null>(null);
-
-/**
- * Mirror the nearest themed ancestor's `data-theme` onto this mount's own root.
- *
- * CSS cannot express "nearest ancestor wins". A host page themed `light` with
- * the mount's container marked `dark` matches BOTH `[data-theme="light"] .weft-scope`
- * and `[data-theme="dark"] .weft-scope` — same element, both (0,2,0) — so source
- * order decides, and a mount that asked to be dark renders light.
- *
- * The old unqualified rules got this right for free, because they declared the
- * tokens on the themed element itself and let inheritance carry them down. That
- * is also exactly why they leaked into the host's markup. Resolving the value
- * here turns an ancestor question into an own-attribute one, which the cascade
- * handles unambiguously — and keeps the rules scoped.
- */
-$effect(() => {
-	if (!root) return;
-
-	const resolve = () => {
-		// From the PARENT, never from `root` itself: this effect writes the
-		// attribute onto `root`, and reading it back would latch the first value
-		// forever.
-		const found = root?.parentElement?.closest("[data-theme]")?.getAttribute("data-theme");
-		// Clamped rather than mirrored verbatim. A host themed `solarized-mango`
-		// matches no block and falls through to the light base either way — but
-		// republishing their arbitrary string as Weft's own state is not something
-		// to do on their behalf.
-		inheritedTheme = found === "dark" || found === "light" ? found : null;
-	};
-
-	resolve();
-
-	// A host may toggle its own theme at runtime; the filter keeps this cheap
-	// even though the subtree is the whole document.
-	const observer = new MutationObserver(resolve);
-	observer.observe(document.documentElement, {
-		subtree: true,
-		attributes: true,
-		attributeFilter: ["data-theme"],
-	});
-	return () => observer.disconnect();
-});
-
-// The mirrored scheme picks which half of the pair renders. An unthemed host
-// gets the light half when there is one — host pages are usually light, and
-// the pre-conversion base palette was light for the same reason. A scheme the
-// pair cannot serve clamps to the half that exists.
-let activeStyle = $derived.by(() => {
-	const scheme = inheritedTheme ?? (stylePair.light ? "light" : "dark");
-	return stylePair[scheme as "dark" | "light"] ?? stylePair.light ?? stylePair.dark;
-});
+// Which half of the style pair renders, mirrored from the host — see hostTheme.
+const host = hostTheme(
+	() => root,
+	() => style
+);
 
 function handleNavigate(id: string, hash?: string) {
 	onnavigate?.(id, hash);
@@ -114,8 +65,8 @@ function handleNavigate(id: string, hash?: string) {
 -->
 <div
 	class="weft-scope weft-doc"
-	data-theme={inheritedTheme ?? undefined}
-	data-ld-style={activeStyle}
+	data-theme={host.scheme ?? undefined}
+	data-ld-style={host.style}
 	bind:this={root}
 >
 	{#if currentNode}

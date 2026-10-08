@@ -57,7 +57,7 @@ file watch.
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/usage.md](docs/usage.md) | CLI commands, navigation, keyboard shortcuts |
+| [docs/usage.md](docs/usage.md) | CLI commands, embedding (including one section, and React), navigation, keyboard shortcuts |
 | [docs/configuration.md](docs/configuration.md) | Config file options, frontmatter fields, sidecar `.weft` format |
 | [docs/theming.md](docs/theming.md) | Themes, CSS custom properties, style overrides |
 

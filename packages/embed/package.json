@@ -1,7 +1,7 @@
 {
 	"name": "@lepid-labs/weft-embed",
 	"version": "0.3.0",
-	"description": "Weft's reader as a drop-in browser bundle: mount a document graph in any page",
+	"description": "Weft's reader as a drop-in browser bundle: mount a document graph, or one section of a file, in any page",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -10,19 +10,25 @@
 	},
 	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/usage.md#embedding",
 	"type": "module",
-	"files": ["dist"],
+	"files": ["dist", "section.d.ts"],
 	"exports": {
 		".": {
 			"import": "./dist/weft.js"
 		},
 		"./iife": "./dist/weft.iife.js",
 		"./style.css": "./dist/weft.css",
+		"./section": {
+			"types": "./section.d.ts",
+			"import": "./dist/section.js"
+		},
+		"./section/iife": "./dist/section.iife.js",
+		"./section.css": "./dist/section.css",
 		"./package.json": "./package.json"
 	},
 	"unpkg": "dist/weft.iife.js",
 	"jsdelivr": "dist/weft.iife.js",
 	"scripts": {
-		"build": "vite build && node scripts/check-scoping.mjs && node scripts/check-mermaid.mjs",
+		"build": "vite build && vite build --mode section && node scripts/check-scoping.mjs && node scripts/check-mermaid.mjs",
 		"dev": "vite build --watch",
 		"typecheck": "tsc --noEmit",
 		"prepublishOnly": "pnpm run build"

@@ -1,13 +1,13 @@
 import type { WeftClient } from "$lib/client.js";
 import type { RenderOptions } from "$lib/markdown.js";
 import type { MermaidLoader } from "$lib/mermaid.js";
-import { loadRemoteStyles } from "$lib/style-loader.js";
-import { assertServableStyles, isBundledStyle } from "$lib/styles.js";
+import { assertServableStyles } from "$lib/styles.js";
 import type { Manifest, StyleConfig } from "@lepid-labs/weft-core/browser";
 import { mount, unmount } from "svelte";
 import App from "./App.svelte";
 import DocMountRoot from "./DocMountRoot.svelte";
 import { createDocState } from "./doc-state.svelte.js";
+import { loadRemoteIfNeeded, resolveContainer } from "./mount-helpers.js";
 
 // Every lepid-design theme, folded into dist/weft.css. Safe in a host page:
 // each rule is guarded by data-ld-style, which only Weft's own containers
@@ -16,15 +16,6 @@ import "@lepid-labs/styles/all";
 
 export type { WeftClient } from "$lib/client.js";
 export type { MermaidApi, MermaidLoader } from "$lib/mermaid.js";
-
-/** Fetch any non-bundled theme (CSS + fonts) from the configured styleUrl. */
-function loadRemoteIfNeeded(style: StyleConfig | undefined, styleUrl: string | undefined): void {
-	if (!styleUrl || !style) return;
-	const names = (typeof style === "string" ? [style] : [style.dark, style.light]).filter(
-		(name) => !isBundledStyle(name)
-	);
-	void loadRemoteStyles(styleUrl, names, { stylesheets: true });
-}
 
 export interface EmbedConfig {
 	/** GitHub repo in "owner/repo" format. Required unless baseUrl is set. */
@@ -102,12 +93,7 @@ export function mountWeft(target: string | HTMLElement, config: EmbedConfig): ()
 		throw new Error("Weft: either `repo` or `baseUrl` must be provided");
 	}
 
-	const container =
-		typeof target === "string" ? (document.querySelector(target) as HTMLElement | null) : target;
-
-	if (!container) {
-		throw new Error(`Weft: container not found: ${target}`);
-	}
+	const container = resolveContainer(target);
 	assertServableStyles(config.style, config.styleUrl);
 	loadRemoteIfNeeded(config.style, config.styleUrl);
 
@@ -207,12 +193,7 @@ export interface DocMount {
  * doc.update({ nodeId: 'api.md' });
  */
 export function mountDoc(target: string | HTMLElement, options: DocMountOptions): DocMount {
-	const container =
-		typeof target === "string" ? (document.querySelector(target) as HTMLElement | null) : target;
-
-	if (!container) {
-		throw new Error(`Weft: container not found: ${target}`);
-	}
+	const container = resolveContainer(target);
 	if (!options.client) {
 		throw new Error("Weft: mountDoc needs a `client` — see WeftClient");
 	}

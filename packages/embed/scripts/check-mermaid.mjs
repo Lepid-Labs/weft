@@ -25,7 +25,7 @@ const MERMAID_MARKERS = [
 ];
 
 let failed = false;
-for (const name of ["weft.js", "weft.iife.js"]) {
+for (const name of ["weft.js", "weft.iife.js", "section.js", "section.iife.js"]) {
 	const source = readFileSync(fileURLToPath(new URL(`../dist/${name}`, import.meta.url)), "utf-8");
 
 	if (!source.includes(pinned)) {
@@ -40,4 +40,4 @@ for (const name of ["weft.js", "weft.iife.js"]) {
 }
 
 if (failed) process.exit(1);
-console.log(`weft: both bundles load ${pinned} and bundle none of it.`);
+console.log(`weft: every bundle loads ${pinned} and bundles none of it.`);

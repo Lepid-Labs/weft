@@ -5,7 +5,13 @@
 // Usage: node scripts/set-version.mjs <version>
 import { readFileSync, writeFileSync } from "node:fs";
 
-const PUBLISHED = ["packages/core", "packages/cli", "packages/ui", "packages/embed"];
+const PUBLISHED = [
+	"packages/core",
+	"packages/cli",
+	"packages/ui",
+	"packages/embed",
+	"packages/react",
+];
 const VERSION_LINE = /^(\t"version":\s*")[^"]*(")/m;
 
 const version = process.argv[2];

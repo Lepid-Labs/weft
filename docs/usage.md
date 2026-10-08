@@ -92,7 +92,8 @@ Two of these read git history. Indexing already walks `git log` once per docs ro
 
 ## Embedding
 
-`@lepid-labs/weft-embed` offers two mounts, and which one you want depends on how much of the page is yours.
+`@lepid-labs/weft-embed` offers three mounts, and which one you want depends on how much of the page is yours.
+The third, `mountSection`, renders one section of one file inline — see [One section](#one-section).
 
 `mountWeft` gives you the whole product — header, document tree, search, theme handling — and fetches documents from a GitHub repo or a base URL:
 
@@ -125,6 +126,64 @@ Three things about this mount are deliberate:
 `update` takes the whole state rather than a patch. That is deliberate: with a patch, an omitted anchor needs a rule, and both answers are wrong somewhere — keep it and re-pointing carries the old anchor into the new document, which scrolls to the wrong place whenever the two share a slug; clear it and a same-document refresh loses the reader's position. Passing both fields every time removes the question.
 
 **Weft stays inside its own container.** Everything it renders sits within `.weft-scope`, so its box model, fonts and colours reach only its own subtree — your reset and your typography are untouched outside it. It never writes `data-theme` on `documentElement`: set it on the container to pick a scheme, or leave it and Weft inherits what you already decided. Anchor scrolling is scoped to the mount too, so a link to `#overview` inside a document will not scroll an `#overview` of yours elsewhere on the page.
+
+### One section
+
+`mountSection` renders one section of one file inline in your layout: help text in a tool, kept in the docs rather
+than copied into the tool. It needs no manifest, just a source, a path and, optionally, a heading anchor. The section
+runs from that heading to the next one as deep or shallower; with no anchor it is the whole file.
+
+```js
+import { mountSection } from '@lepid-labs/weft-embed/section';
+import '@lepid-labs/weft-embed/section.css';
+
+const section = mountSection('#help', {
+  repo: 'acme/tool', ref: 'v2.1.0',      // a branch to follow, or a tag to pin
+  path: 'docs/cli.md', anchor: '#flags',
+  headingLevel: 3,                        // the section's heading renders as an h3
+  onError: (error) => showFallback(error.kind), // 'load' | 'anchor' | 'render'
+});
+section.update({ path: 'docs/cli.md', anchor: '#exit-codes' });
+```
+
+| Option | Meaning |
+|--------|---------|
+| `repo`, `ref` | GitHub `owner/repo`, and the branch, tag or commit to read (default `main`). Fetched unauthenticated, so public repos only. |
+| `baseUrl` | Instead of `repo`: a URL serving files at their paths. |
+| `client` | `{ fetchDoc(path) }`, to fetch through your own backend, which holds the credentials for a private repo. Takes precedence over `repo` and `baseUrl` for fetching; those still shape the default URLs below. |
+| `headingLevel`, `hideHeading` | Fold the section into your outline, or leave out its heading when you title it yourself. |
+| `resolveUrl` | Where relative links and images point. By default a link opens the file on GitHub (or under `baseUrl`), and an image loads from the raw file, which a private repo needs this to override. |
+| `onLinkClick` | Follow links into the docs yourself; it receives `{ path, anchor, url }`. Without it, the link opens in a new tab. |
+| `onError` | Called when the section cannot be shown. The mount then renders nothing and leaves the fallback to you; without it, the mount shows the message. |
+
+`style`, `styleUrl`, `mermaid` and the render-pass options work as on `mountDoc`. The mount never navigates your page:
+a `#fragment` link scrolls within the section, or opens that heading in the file, rather than changing your location
+hash, and external links open in a new tab. Include links render as links; expanding them needs the manifest, which
+is `mountDoc`'s job. A renamed heading shows up as an `anchor` error: pin `ref` to take doc changes only with your
+releases, or follow a branch and check your anchors in your own CI.
+
+### React
+
+`@lepid-labs/weft-react` wraps `mountSection` as a component. `react` 18 or later is a peer dependency.
+
+```jsx
+import { WeftSection } from '@lepid-labs/weft-react';
+import '@lepid-labs/weft-react/style.css';
+
+<WeftSection
+  client={docsClient}                // fetches through your backend
+  repo="acme/tool" ref="main"        // so links open on GitHub
+  path="docs/cli.md" anchor="#flags"
+  hideHeading
+  fallback={<a href={CLI_DOCS_URL}>See the CLI docs</a>}
+/>
+```
+
+Its props are `mountSection`'s options, with `theme` in place of `style` (so it does not read as inline CSS), plus
+`className`, and `fallback`, which is shown when the section cannot be. `path` and `anchor` re-point the section in
+place. Functions are read when they are called, so an inline arrow or an inline `client` does not refetch. Any other
+prop change mounts afresh, so keep `remarkPlugins` and `rehypePlugins` arrays stable. The renderer loads as its own
+chunk on first mount, and server rendering emits only the empty container; the module is marked `"use client"`.
 
 ### Theming contract
 
@@ -197,6 +256,10 @@ A plain page loads the IIFE build, which defines the `Weft` global, from a CDN, 
 ```
 
 To self-host, copy `dist/weft.iife.js` and `dist/weft.css` out of the installed package.
+
+The section mount is a separate entry with its own stylesheet, `@lepid-labs/weft-embed/section` and
+`@lepid-labs/weft-embed/section.css`; its IIFE build, `dist/section.iife.js`, defines the `WeftSection` global. It ships
+TypeScript declarations; the full entry does not yet.
 
 ## Navigation
 
