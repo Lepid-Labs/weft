@@ -29,7 +29,6 @@ function edge(from: string, to: string, extra: Partial<WeftEdge> = {}): WeftEdge
 const CONFIG: WeftConfig = {
 	rootDir: "/project",
 	docsDir: "docs",
-	entryPoint: "docs/README.md",
 	ignore: [],
 };
 
@@ -361,7 +360,6 @@ describe("edge resolution (over a real docs tree)", () => {
 	const config: WeftConfig = {
 		rootDir: BROKEN_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 	};
 

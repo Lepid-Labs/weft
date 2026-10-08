@@ -13,7 +13,6 @@ describe("graphHistory", () => {
 		return {
 			rootDir: repo,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			...overrides,
 		};

@@ -1,4 +1,5 @@
 docsDir: docs
+entryPoint: docs/PURPOSE.md
 ignore:
   - "**/node_modules/**"
   - "**/dist/**"

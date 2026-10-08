@@ -45,7 +45,6 @@ function createWritableService(): { dir: string; service: WeftService } {
 	const service = new WeftService({
 		rootDir: dir,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 	});
 	return { dir, service };

@@ -11,10 +11,15 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 - Embed one section of a file: `mountSection` in `@lepid-labs/weft-embed/section`, and the new
   `@lepid-labs/weft-react` package with a `<WeftSection>` component (#114).
 - `weft check` reports include edges that no block link expands (`include-link-missing`) (#113).
+- `weft check` warns when `entryPoint` names no document (`entry-point-missing`).
 
 ### Fixed
 
 - Includes written as GitHub blob URLs into a mapped repository now expand (#113).
+- `entryPoint` in `weft.config.yaml` is now honoured: the UI and the full embed open that document at `/`. It was
+  accepted and documented but never read. With it set, a top-level `README.md` is served at `/README`. It may be a
+  path relative to the project root or a node id, and no longer defaults to `docs/README.md`; unset, landing works as
+  before.
 
 ## [0.3.0] - 2026-10-02
 

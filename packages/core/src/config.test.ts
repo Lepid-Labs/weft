@@ -20,7 +20,6 @@ function config(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: ROOT,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		...overrides,
 	};
@@ -50,7 +49,6 @@ describe("loadConfig", () => {
 		expect(config).toEqual({
 			rootDir: resolve(root),
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: ["**/node_modules/**", "**/dist/**", "**/_site/**", "**/_book/**", "**/.quarto/**"],
 		});
 	});
@@ -81,7 +79,7 @@ describe("loadConfig", () => {
 		expect(config.layout).toBe("reader");
 		expect(config.docOrder).toEqual(["features.md"]);
 		expect(config.docOrderStrict).toBe(true);
-		expect(config.entryPoint).toBe("docs/README.md");
+		expect(config.entryPoint).toBeUndefined();
 	});
 
 	it("loads weft.config.yml", async () => {

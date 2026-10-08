@@ -7,7 +7,6 @@ import { validateManifest } from "../run.js";
 const CONFIG = {
 	rootDir: "/project",
 	docsDir: "docs",
-	entryPoint: "docs/README.md",
 	ignore: [],
 };
 

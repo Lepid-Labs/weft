@@ -22,7 +22,6 @@ function fixtureConfig(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: FIXTURES_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		...overrides,
 	};
@@ -32,7 +31,6 @@ function monorepoConfig(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: MONOREPO_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		projects: [
 			{ name: "Alpha", docsDir: "products/alpha/docs" },
@@ -231,6 +229,29 @@ describe("buildManifest", () => {
 		expect(manifest.site).toBeUndefined();
 	});
 
+	it("resolves entryPoint written as a project-root path or as a node id", async () => {
+		for (const entryPoint of [
+			"docs/architecture.md",
+			"architecture.md",
+			"./docs/architecture.md",
+		]) {
+			const manifest = await buildManifest(fixtureConfig({ entryPoint }));
+			expect(manifest.site?.entryPoint).toBe("architecture.md");
+		}
+	});
+
+	it("resolves entryPoint to a namespaced node id in multi-project mode", async () => {
+		for (const entryPoint of ["products/alpha/docs/features.md", "alpha/features.md"]) {
+			const manifest = await buildManifest(monorepoConfig({ entryPoint }));
+			expect(manifest.site?.entryPoint).toBe("alpha/features.md");
+		}
+	});
+
+	it("leaves out an entryPoint that names no document", async () => {
+		const manifest = await buildManifest(fixtureConfig({ entryPoint: "docs/missing.md" }));
+		expect(manifest.site).toBeUndefined();
+	});
+
 	it("omits projects in single-project mode", async () => {
 		const manifest = await buildManifest(fixtureConfig());
 
@@ -350,7 +371,6 @@ describe("buildManifest (artifacts)", () => {
 		return {
 			rootDir: ARTIFACTS_DIR,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			artifacts: ["**/*.pdf"],
 			...overrides,
@@ -361,6 +381,13 @@ describe("buildManifest (artifacts)", () => {
 		const manifest = await buildManifest(artifactConfig());
 
 		expect(manifest.nodes.map((n) => n.id).sort()).toContain("handbook.pdf");
+	});
+
+	it("never makes an artifact the entry point, since the reader cannot open one", async () => {
+		const manifest = await buildManifest(artifactConfig({ entryPoint: "docs/handbook.pdf" }));
+
+		expect(manifest.nodes.map((n) => n.id)).toContain("handbook.pdf");
+		expect(manifest.site?.entryPoint).toBeUndefined();
 	});
 
 	it("indexes nothing extra when no artifacts are configured", async () => {
@@ -440,7 +467,6 @@ describe("buildManifest (artifacts)", () => {
 		const manifest = await buildManifest({
 			rootDir: ARTIFACTS_DIR,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			artifacts: ["**/*.pdf"],
 			projects: [{ name: "Guides", docsDir: "docs" }],
@@ -543,7 +569,6 @@ describe("buildManifest (contributions)", () => {
 		return {
 			rootDir: dir,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			contributions: ["build.json"],
 			...overrides,

@@ -36,7 +36,6 @@ function multiRepoConfig(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: meta,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		repos: { "acme/alpha": "../alpha" },
 		projects: [

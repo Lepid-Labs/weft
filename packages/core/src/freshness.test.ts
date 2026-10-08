@@ -14,7 +14,6 @@ function fixtureConfig(overrides: Partial<WeftConfig> = {}): WeftConfig {
 	return {
 		rootDir: FIXTURES_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 		...overrides,
 	};

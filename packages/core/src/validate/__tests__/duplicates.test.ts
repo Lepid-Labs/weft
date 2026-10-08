@@ -8,7 +8,6 @@ import type { GraphHistory } from "../types.js";
 const CONFIG: WeftConfig = {
 	rootDir: "/project",
 	docsDir: "docs",
-	entryPoint: "docs/README.md",
 	ignore: [],
 };
 

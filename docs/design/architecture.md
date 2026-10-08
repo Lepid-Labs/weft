@@ -26,10 +26,10 @@ derived from the filesystem, so processes share no mutable state. CLI commands s
 
 Within one `weft serve` there is exactly one `WeftService`, constructed and owned by the CLI. The UI never constructs
 one: it reads the manifest and the `/api` JSON. Presentation config (`defaultTheme`, `style`, `styleUrl`, `layout`,
-`siteTitle`, `siteUrl`, `ogImage`) travels in the manifest's `site` block, so the UI needs no config access. The UI
-imports only core's types and `@lepid-labs/weft-core/browser`, the browser-safe subset that both sides of a
-render-time contract call (OpenAPI parsing and anchor ids, section extraction, include matching). It has no
-server-side core runtime import.
+`siteTitle`, `siteUrl`, `ogImage`, and `entryPoint` resolved to a node id) travels in the manifest's `site` block, so
+the UI needs no config access. The UI imports only core's types and `@lepid-labs/weft-core/browser`, the
+browser-safe subset that both sides of a render-time contract call (OpenAPI parsing and anchor ids, section
+extraction, include matching). It has no server-side core runtime import.
 
 Config is static data ([0017](../decisions/0017-static-config.md)): `weft.config.yaml`, `.yml` or `.json`, validated
 when it loads. A legacy `weft.config.ts` or `.js` fails with a migration error rather than being ignored.

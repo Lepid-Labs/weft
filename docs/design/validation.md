@@ -137,10 +137,12 @@ Rules, their default severities, and the `rules` config that overrides them (`er
 | `node-duplicate` | info | `artifact-source-unrecorded` | info |
 | `node-diverged` | warn | `include-cycle` | error |
 | `validator-error` | error | `include-link-missing` | warn |
+| `entry-point-missing` | warn | | |
 
 `artifact-source-unrecorded` is `info` rather than `warn` because `derives-from` is also fair as plain modelling.
-`include-link-missing` is `warn` so that upgrading fails no build. `weft analyze` always exits 0; `weft check` exits
-1 on any error-severity diagnostic.
+`include-link-missing` and `entry-point-missing` are `warn` so that upgrading fails no build; the second matters
+because `entryPoint` was accepted but ignored through 0.3.0, so a stale value in a project's config only now has an
+effect. `weft analyze` always exits 0; `weft check` exits 1 on any error-severity diagnostic.
 
 ## Risks
 

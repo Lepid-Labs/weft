@@ -7,10 +7,12 @@ interface Props {
 	nodes: WeftNode[];
 	projects?: WeftProjectRef[];
 	currentNodeId?: string;
+	/** The node addressed as `/` (see `rootNodeId`). */
+	rootId?: string;
 	onnavigate: (nodeId: string) => void;
 }
 
-let { nodes, projects, currentNodeId, onnavigate }: Props = $props();
+let { nodes, projects, currentNodeId, rootId, onnavigate }: Props = $props();
 
 let grouped = $derived((projects?.length ?? 0) > 1);
 // docOrderStrict hides docs from the nav without removing them from the graph,
@@ -34,7 +36,7 @@ function follow(e: MouseEvent, nodeId: string) {
 	{#if node.nodeId}
 		<a
 			class="ld-sidenav__item"
-			href={nodeIdToPath(node.nodeId)}
+			href={nodeIdToPath(node.nodeId, rootId)}
 			aria-current={currentNodeId === node.nodeId ? "page" : undefined}
 			style:padding-inline-start={depth ? `${0.75 + depth * 0.75}rem` : undefined}
 			onclick={(e) => follow(e, node.nodeId!)}

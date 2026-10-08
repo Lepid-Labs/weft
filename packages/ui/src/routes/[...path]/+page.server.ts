@@ -1,5 +1,5 @@
 import { readManifest } from "$lib/server/manifest.js";
-import { nodeIdToPath, pathToNode } from "$lib/utils/paths.js";
+import { nodeIdToPath, pathToNode, rootNodeId } from "$lib/utils/paths.js";
 import { error, redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types.js";
 
@@ -7,21 +7,23 @@ export const load: PageServerLoad = async ({ params }) => {
 	const manifest = readManifest();
 	const { siteTitle, siteUrl, ogImage } = manifest.site ?? {};
 
-	// In multi-project mode there is no bare README.md — fall back to the first
+	// `/` is the configured entry point, else the top-level README. In
+	// multi-project mode there is no bare README.md — fall back to the first
 	// project's README before giving up on the first node in the manifest.
+	const rootId = rootNodeId(manifest);
 	const firstProject = manifest.projects?.[0]?.slug;
 	// The last-resort fallback skips what the nav skips, so the landing page is
 	// never a generated output or a document the project deliberately hid.
 	const landable = manifest.nodes.filter((n) => !n.hiddenFromNav && n.type !== "artifact");
 	const node =
-		pathToNode(params.path ?? "", manifest.nodes) ??
-		manifest.nodes.find((n) => n.id === "README.md") ??
+		pathToNode(params.path ?? "", manifest.nodes, rootId) ??
+		manifest.nodes.find((n) => n.id === rootId) ??
 		(firstProject ? manifest.nodes.find((n) => n.id === `${firstProject}/README.md`) : undefined) ??
 		landable[0];
 
 	if (!node) error(404, "No documents found.");
 
-	const canonical = nodeIdToPath(node.id);
+	const canonical = nodeIdToPath(node.id, rootId);
 	const requested = `/${params.path ?? ""}`;
 	if (canonical !== requested) redirect(302, canonical);
 

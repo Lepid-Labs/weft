@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { RenderOptions } from "$lib/markdown.js";
 import { type ThemeInitOptions, theme } from "$lib/stores/theme.svelte.js";
-import { nodeIdToPath } from "$lib/utils/paths.js";
+import { nodeIdToPath, rootNodeId } from "$lib/utils/paths.js";
 import type { Manifest } from "@lepid-labs/weft-core";
 import DocTree from "./DocTree.svelte";
 import DocView from "./DocView.svelte";
@@ -61,7 +61,7 @@ $effect(() => {
 
 function handleNavigate(nodeId: string, anchor?: string) {
 	navOpen = false;
-	navigate(nodeIdToPath(nodeId) + (anchor ?? ""));
+	navigate(nodeIdToPath(nodeId, rootNodeId(manifest)) + (anchor ?? ""));
 }
 
 function goHome(e: MouseEvent) {
@@ -133,6 +133,7 @@ function handleKeydown(e: KeyboardEvent) {
 		<DocTree
 			nodes={manifest.nodes}
 			projects={manifest.projects}
+			rootId={rootNodeId(manifest)}
 			onnavigate={handleNavigate}
 			{currentNodeId}
 		/>

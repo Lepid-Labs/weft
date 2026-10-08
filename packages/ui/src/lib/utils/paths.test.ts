@@ -1,6 +1,6 @@
-import type { WeftNode } from "@lepid-labs/weft-core";
+import type { Manifest, WeftNode } from "@lepid-labs/weft-core";
 import { describe, expect, it } from "vitest";
-import { nodeIdToPath, pathToNode } from "./paths.js";
+import { nodeIdToPath, pathToNode, rootNodeId } from "./paths.js";
 
 function node(id: string, project?: string): WeftNode {
 	return { id, type: "markdown", title: id, anchors: [], ...(project ? { project } : {}) };
@@ -77,5 +77,49 @@ describe("pathToNode", () => {
 			const nodes = SINGLE.includes(n) ? SINGLE : MULTI;
 			expect(pathToNode(nodeIdToPath(n.id), nodes)?.id).toBe(n.id);
 		}
+	});
+});
+
+describe("with a configured entry point", () => {
+	const ROOT = "features.md";
+
+	it("addresses the entry point as / and the README by name", () => {
+		expect(nodeIdToPath(ROOT, ROOT)).toBe("/");
+		expect(nodeIdToPath("README.md", ROOT)).toBe("/README");
+		expect(nodeIdToPath("guides/setup.md", ROOT)).toBe("/guides/setup");
+	});
+
+	it("resolves / to the entry point, and /README to the README", () => {
+		expect(pathToNode("/", SINGLE, ROOT)?.id).toBe(ROOT);
+		expect(pathToNode("/README", SINGLE, ROOT)?.id).toBe("README.md");
+	});
+
+	it("round-trips every node id", () => {
+		for (const n of SINGLE) {
+			expect(pathToNode(nodeIdToPath(n.id, ROOT), SINGLE, ROOT)?.id).toBe(n.id);
+		}
+	});
+
+	it("keeps a project README at its project path", () => {
+		expect(nodeIdToPath("alpha/README.md", "alpha/features.md")).toBe("/alpha");
+		expect(nodeIdToPath("alpha/features.md", "alpha/features.md")).toBe("/");
+	});
+});
+
+describe("rootNodeId", () => {
+	const manifest = (site?: Manifest["site"]): Manifest => ({
+		version: 2,
+		nodes: SINGLE,
+		edges: [],
+		site,
+	});
+
+	it("is the configured entry point", () => {
+		expect(rootNodeId(manifest({ entryPoint: "features.md" }))).toBe("features.md");
+	});
+
+	it("falls back to the top-level README", () => {
+		expect(rootNodeId(manifest())).toBe("README.md");
+		expect(rootNodeId(manifest({ siteTitle: "Docs" }))).toBe("README.md");
 	});
 });

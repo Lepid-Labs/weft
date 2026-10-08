@@ -31,7 +31,6 @@ function createService(): WeftService {
 	const config: WeftConfig = {
 		rootDir: FIXTURES_DIR,
 		docsDir: "docs",
-		entryPoint: "docs/README.md",
 		ignore: [],
 	};
 	return new WeftService(config);

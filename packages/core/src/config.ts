@@ -22,7 +22,6 @@ export const LOCAL_CONFIG_FILES = ["weft.config.local.yaml", "weft.config.local.
  */
 const DEFAULTS: Omit<WeftConfig, "rootDir"> = {
 	docsDir: "docs",
-	entryPoint: "docs/README.md",
 	ignore: ["**/node_modules/**", "**/dist/**", "**/_site/**", "**/_book/**", "**/.quarto/**"],
 };
 

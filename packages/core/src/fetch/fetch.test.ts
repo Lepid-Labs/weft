@@ -139,7 +139,6 @@ describe("fetchRepo and resolveFetchedRepos", () => {
 		const config: WeftConfig = {
 			rootDir: meta,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			projects: [
 				{ name: "Meta", docsDir: "docs" },
@@ -162,7 +161,6 @@ describe("fetchRepo and resolveFetchedRepos", () => {
 		const config: WeftConfig = {
 			rootDir: workspace,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			repos: { "acme/alpha": local },
 			projects: [{ name: "Alpha", docsDir: "docs", repo: "acme/alpha" }],
@@ -182,7 +180,6 @@ describe("fetchRepo and resolveFetchedRepos", () => {
 		const config: WeftConfig = {
 			rootDir: workspace,
 			docsDir: "docs",
-			entryPoint: "docs/README.md",
 			ignore: [],
 			repos: { "acme/fetched": join(workspace, "missing-checkout") },
 		};
