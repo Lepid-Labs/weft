@@ -8,7 +8,7 @@
 		"url": "git+https://github.com/Lepid-Labs/weft.git",
 		"directory": "packages/react"
 	},
-	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/usage.md#react",
+	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/guides/embedding.md#react",
 	"type": "module",
 	"files": ["dist"],
 	"exports": {

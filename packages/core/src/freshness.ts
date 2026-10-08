@@ -17,7 +17,7 @@ import type { Freshness, Manifest, WeftConfig } from "./types.js";
  * Matches the manifest output directory everywhere a docs root is globbed,
  * the same way chokidar's watcher ignores it. Applied on top of the config's
  * own `ignore` globs so a freshly written manifest never makes its own tree
- * look changed (DD-15). Applied only here, not in the indexer's globs — both
+ * look changed. Applied only here, not in the indexer's globs — both
  * currently skip `.weft/` via glob's defaults, but they are not otherwise
  * kept in scope-agreement by this constant.
  *

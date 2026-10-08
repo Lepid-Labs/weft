@@ -8,7 +8,7 @@
 		"url": "git+https://github.com/Lepid-Labs/weft.git",
 		"directory": "packages/embed"
 	},
-	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/usage.md#embedding",
+	"homepage": "https://github.com/Lepid-Labs/weft/blob/main/docs/guides/embedding.md",
 	"type": "module",
 	"files": ["dist", "section.d.ts"],
 	"exports": {

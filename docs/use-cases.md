@@ -1,120 +1,24 @@
-# Weft — Use Cases
+# Use cases
 
-## UC-1: In-repo documentation navigation
-A developer opens a terminal in a project repo and runs `weft serve`. A browser UI opens
-showing the document graph. They can navigate from the high-level design doc to the relevant
-API spec section to the database schema to the code file that implements it — using the doc
-tree, main view, and linked-items sidebar, with each navigation step preserving history so
-they can go back.
+What people and agents set out to do with Weft, one actor and goal per file, numbered `UC-nnn` in the order they were
+written. Each names its actor, trigger, flow and outcome; two are deferred until a capability they need exists.
+[Requirements](requirements.md) cite the use cases they support.
 
-## UC-2: VSCode side panel
-While reading a code file in VSCode, the developer sees gutter annotations where `@doc`
-references appear in comments. Clicking an annotation opens the Weft side panel directly
-to the referenced document section. The panel is navigable — they can follow links within it
-without leaving the editor.
-
-## UC-3: Presentation during a call *(deferred — requires import pipeline)*
-A developer is presenting an architecture overview (imported from a Google Slides deck) during
-a Zoom call. A stakeholder asks about the behavior of a specific API endpoint. With **presenting
-mode** enabled, the developer clicks a link on the slide; a **slide-in modal** opens to the
-OpenAPI spec section for that endpoint (without shrinking the main slide view). They answer the
-question, dismiss the modal, and continue the deck from where they left off.
-
-## UC-4: Document review / annotation
-A reviewer receives a zip of project documentation. They drop it in a folder, run
-`weft serve`, and navigate the graph in the browser. They select a paragraph in the
-architecture doc, add a comment, and optionally link the comment to a related section elsewhere
-("see also: api.yaml#/paths/users"). The tool writes the annotation to a
-`architecture.md.weft` sidecar file. The reviewer sends back that file (or the whole
-`docs/` folder). The original author drops it in, runs `weft serve`, and sees the
-annotations in context: the main view shows the document while **reviewing mode** surfaces
-comment history and links in the sidebar layout.
-
-## UC-5: Onboarding a new team member
-A new developer runs `weft serve` on day one. Starting from the README or a designated
-entry-point doc, they can explore the full project graph — following links from design intent
-to implementation to API contract to database schema — without needing a guided tour.
-
-## UC-6: AI agent context during vibe coding
-A developer is vibe coding with an AI agent (e.g., Claude Code, Cursor, Copilot) running in
-a repo that has a Weft graph. When the agent is about to implement or modify a feature, it
-uses a Weft skill/tool to query the documentation graph for relevant context — design intent,
-API contracts, database schema constraints, related wireframes. The agent receives structured
-results anchored to specific document sections, grounding its code generation in the project's
-actual specifications rather than guessing from code alone. As the agent works, it can follow
-graph edges to discover related constraints it wouldn't have found by grepping source files.
-
-## UC-7: AI agent updates documentation alongside code
-An AI agent completes a code change — adding a new endpoint, changing a database column,
-modifying business logic. Before finishing, it queries the Weft graph to find documentation
-nodes linked to the code it changed (via `@doc` references and graph edges). It then updates
-the affected doc sections — API spec, schema description, architecture notes — to reflect the
-new behavior, keeping documentation in sync with code as a natural part of the implementation
-workflow rather than a separate chore.
-
-## UC-8: Decision log for significant changes
-A developer (or AI agent) is about to make a significant change — replacing an auth strategy,
-restructuring a data model, deprecating an API. As part of the change, they append a decision
-entry to the relevant documentation node: what changed, why, what alternatives were considered,
-and who approved it. The entry is linked to the affected nodes in the graph (API spec, schema,
-architecture doc). Over time, the decision log becomes a navigable history of the project's
-evolution — anyone can trace from a piece of code to the design decision that shaped it.
-
-## UC-9: PR review flags missing documentation updates
-A developer opens a pull request with significant code changes but no corresponding
-documentation updates. A CI-integrated agent runs `weft check` against the diff, traverses
-the graph to identify documentation nodes linked to the changed code, and detects that those
-nodes are now stale. It posts a review comment on the PR listing the specific doc sections
-that likely need updating, with links to each one. The developer (or an agent) can then
-address the gaps before merge.
-
-## UC-10: Cross-team dependency discovery
-A team is about to change a shared API. They query the Weft graph for all nodes referencing
-that API's anchors — and discover downstream consumers they didn't know about: another team's
-design doc references the endpoint, a wireframe links to the response schema, a functional
-spec depends on the current behavior. The graph surfaces blast radius across artifact types
-that wouldn't show up in a code-only dependency analysis.
-
-## UC-11: Documentation coverage analysis
-A tech lead runs `weft analyze --coverage` to audit the state of project documentation. The tool reports
-code files with no `@doc` links, documentation nodes with zero inbound edges (orphaned docs),
-and graph regions with sparse connectivity. The output highlights gaps systematically —
-undocumented features, stale docs that nothing references anymore, and areas where the
-documentation graph is thin relative to the code complexity.
-
-## UC-12: Migration / deprecation impact scoping
-A team is planning a large migration — swapping a database engine, replacing an auth framework,
-deprecating a service. Before writing code, they query the Weft graph for everything connected
-to the component being replaced: API specs, schema docs, architecture notes, decision log
-entries, wireframes that reference affected behavior. The result is a complete impact map across
-all artifact types, scoping the migration before it begins rather than discovering surprises
-mid-flight.
-
-## UC-13: Cross-repo documentation queries *(deferred — requires MCP server)*
-An organization runs Weft MCP servers in multiple project repos. An AI agent working in one
-repo can query Weft servers across all of them — searching for cross-repo dependencies,
-finding which projects consume a shared API, or researching how other teams solved a similar
-problem. The agent doesn't need to clone or navigate each repo; it queries each project's
-documentation graph as a service and synthesizes results across the organization.
-
-## UC-14: Versioned documentation for releases
-A project publishes releases on GitHub. A developer needs to check the API spec as it existed
-in v2.3, not the current main branch. They run `weft serve --repo org/project --tag v2.3`
-(or select the version in the browser UI). Weft pulls the docs tarball from the GitHub release,
-builds the graph, and serves it. The developer can navigate the full documentation graph as it
-existed at that release — no need to check out old branches or dig through git history.
-
-## UC-15: Stakeholder review without code access
-A non-technical stakeholder receives a `docs/` folder export. They open a hosted static site
-(published via `weft build`) or run `weft serve` locally and can navigate the design documents,
-wireframes, and functional specs without access to the codebase.
-
-## UC-16: Composed documents — an FAQ assembled from its sources
-A team maintains an FAQ page that is really a collection of answers owned by other documents:
-deployment questions answered in the ops runbook, API questions answered in the spec, pricing
-questions answered in the product doc. Instead of copying answers in (and watching them drift),
-the FAQ declares anchor-range include edges — each entry pulls the owning document's section
-inline at render time. Readers see one cohesive page; every answer has exactly one source of
-truth, and `weft check` reports when an included section changes after the composition was last
-reviewed. The same mechanism composes an org-level overview from sections of documents in other
-repositories, served by a single local Weft over several checkouts.
+| Use case | Summary |
+|----------|---------|
+| [UC-001 Developer navigates the repository's documentation](use-cases/developer-navigates-repo-docs.md) | A developer traces a feature from design doc to API spec to schema to code, with history to go back. |
+| [UC-002 Developer opens a referenced document from the editor](use-cases/developer-opens-doc-from-editor.md) | A `@doc` reference in a code comment opens a navigable Weft side panel in VS Code. |
+| [UC-003 Presenter answers a question during a call](use-cases/presenter-answers-question-during-call.md) | Mid-presentation, a slide's link opens the endpoint's spec in a slide-in panel; deferred until slide decks can be imported. |
+| [UC-004 Reviewer annotates documentation](use-cases/reviewer-annotates-documentation.md) | A reviewer comments on a zipped docs set and the author sees the comments in context. |
+| [UC-005 New developer explores the project on day one](use-cases/new-developer-explores-project.md) | Starting from the entry point, a new developer explores the whole graph without a guided tour. |
+| [UC-006 AI agent gathers design context before coding](use-cases/agent-gathers-context-before-coding.md) | An agent grounds its code in anchored results from the documentation graph. |
+| [UC-007 AI agent updates documentation alongside code](use-cases/agent-updates-docs-with-code.md) | An agent finds the docs linked to the code it changed and updates them in the same change. |
+| [UC-008 Developer records the decision behind a significant change](use-cases/developer-records-decision.md) | A decision entry linked to the affected nodes makes the project's evolution traceable. |
+| [UC-009 CI agent flags missing documentation updates on a pull request](use-cases/ci-agent-flags-stale-docs-on-pr.md) | A CI agent comments on a pull request with the doc sections its code change made stale. |
+| [UC-010 Team discovers who depends on a shared API](use-cases/team-discovers-api-consumers.md) | Before changing a shared API, a team finds consumers across every artifact type. |
+| [UC-011 Tech lead audits documentation coverage](use-cases/tech-lead-audits-doc-coverage.md) | A coverage report shows undocumented code, orphaned docs and thin regions of the graph. |
+| [UC-012 Team scopes a migration before it begins](use-cases/team-scopes-migration-impact.md) | A team maps everything connected to the component it is replacing before writing code. |
+| [UC-013 AI agent queries documentation across repositories](use-cases/agent-queries-docs-across-repos.md) | An agent queries several projects' graphs as services; deferred until an MCP server exists. |
+| [UC-014 Developer reads the documentation as it was at a release](use-cases/developer-reads-docs-at-release.md) | A developer browses the docs graph of a past release without checking it out. |
+| [UC-015 Stakeholder reviews design documents without code access](use-cases/stakeholder-reviews-docs-without-code.md) | A non-technical stakeholder reads the docs on a hosted static site or a local Weft. |
+| [UC-016 Team composes an FAQ from the documents that own the answers](use-cases/team-composes-faq-from-sources.md) | An FAQ includes each answer from its owning document, so no answer is copied or drifts. |

@@ -179,7 +179,7 @@ export interface DocMount {
  *
  * Theme it by setting `--weft-*` custom properties on the container or any
  * ancestor; Weft reads those and never declares them, so a host value always
- * wins. The full list lives in `docs/usage.md`'s theming contract rather than
+ * wins. The full list lives in `docs/guides/embedding.md`'s theming contract rather than
  * here — two hand-maintained copies of twenty-odd names had already drifted
  * apart by the time this comment was first written.
  *

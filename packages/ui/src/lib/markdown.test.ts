@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { extractAnchors } from "@lepid-labs/weft-core";
@@ -490,7 +490,15 @@ describe("rendered ids match the indexed anchors", () => {
 describe("rendered ids match the indexed anchors (this repo's own docs)", () => {
 	const DOCS = resolve(fileURLToPath(import.meta.url), "../../../../../docs");
 
-	for (const file of ["usage.md", "configuration.md", "implementation.md", "use-cases.md"]) {
+	const files = readdirSync(DOCS, { recursive: true, encoding: "utf-8" }).filter((f) =>
+		f.endsWith(".md")
+	);
+
+	it("finds the docs", () => {
+		expect(files.length).toBeGreaterThan(0);
+	});
+
+	for (const file of files) {
 		it(`matches for ${file}`, async () => {
 			await assertAnchorsReachable(readFileSync(resolve(DOCS, file), "utf-8"));
 		});
