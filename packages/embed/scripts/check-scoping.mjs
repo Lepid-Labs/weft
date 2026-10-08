@@ -16,7 +16,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const CSS = fileURLToPath(new URL("../dist/weft.css", import.meta.url));
+/** Every stylesheet the package ships: the full reader's and the section mount's. */
+const SHEETS = ["weft.css", "section.css"];
 
 /** Split a selector list on top-level commas only — `:is(h1,h2)` is one selector. */
 function splitSelectors(group) {
@@ -70,27 +71,34 @@ function selectorsIn(css) {
  */
 const SCOPED = /\.weft-scope|\.svelte-[\w-]+|\[data-ld-style/;
 
-const source = readFileSync(CSS, "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
+let failed = false;
 
-const badKeyframes = [...source.matchAll(KEYFRAMES)]
-	.map((m) => m[1])
-	.filter((name) => !/^(weft-|ld-|svelte-)/.test(name));
-if (badKeyframes.length) {
-	console.error(
-		`weft: keyframe name(s) in dist/weft.css are not namespaced (weft-/ld-/svelte-): ${badKeyframes.join(", ")}\n`
-	);
-	process.exit(1);
+for (const sheet of SHEETS) {
+	const css = fileURLToPath(new URL(`../dist/${sheet}`, import.meta.url));
+	const source = readFileSync(css, "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+	const badKeyframes = [...source.matchAll(KEYFRAMES)]
+		.map((m) => m[1])
+		.filter((name) => !/^(weft-|ld-|svelte-)/.test(name));
+	if (badKeyframes.length) {
+		console.error(
+			`weft: keyframe name(s) in dist/${sheet} are not namespaced (weft-/ld-/svelte-): ${badKeyframes.join(", ")}\n`
+		);
+		failed = true;
+	}
+
+	const selectors = selectorsIn(source);
+	const unscoped = [...new Set(selectors.filter((selector) => !SCOPED.test(selector)))];
+
+	if (unscoped.length) {
+		const list = unscoped.map((selector) => `    ${selector}`).join("\n");
+		console.error(
+			`weft: ${unscoped.length} rule(s) in dist/${sheet} can reach the host's markup:\n${list}\n\nEverything the embed ships must be scoped to \`.weft-scope\` or to a Svelte component class.\n`
+		);
+		failed = true;
+	} else {
+		console.log(`weft: dist/${sheet} — ${selectors.length} selectors, all scoped.`);
+	}
 }
 
-const selectors = selectorsIn(source);
-const unscoped = [...new Set(selectors.filter((selector) => !SCOPED.test(selector)))];
-
-if (unscoped.length) {
-	const list = unscoped.map((selector) => `    ${selector}`).join("\n");
-	console.error(
-		`weft: ${unscoped.length} rule(s) in dist/weft.css can reach the host's markup:\n${list}\n\nEverything the embed ships must be scoped to \`.weft-scope\` or to a Svelte component class.\n`
-	);
-	process.exit(1);
-}
-
-console.log(`weft: ${selectors.length} selectors, all scoped.`);
+if (failed) process.exit(1);

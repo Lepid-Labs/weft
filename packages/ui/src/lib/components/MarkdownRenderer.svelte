@@ -15,12 +15,15 @@ interface Props extends RenderOptions {
 	 * by id has to wait for the second one.
 	 */
 	onrendered?: () => void;
+	/** Told when rendering fails — a throwing plugin or a rejected schema. */
+	onerror?: (error: Error) => void;
 }
 
 let {
 	content,
 	onnavigate,
 	onrendered,
+	onerror,
 	remarkPlugins,
 	rehypePlugins,
 	extendSchema,
@@ -51,8 +54,10 @@ async function render(md: string) {
 	} catch (e) {
 		// A throwing plugin or a rejected schema would otherwise leave the previous
 		// document on screen and report only to the console.
-		renderError = e instanceof Error ? e.message : "Failed to render document";
+		const error = e instanceof Error ? e : new Error("Failed to render document");
+		renderError = error.message;
 		htmlContent = "";
+		onerror?.(error);
 		return;
 	}
 	// After the DOM has the new HTML, not merely after the promise resolves.
