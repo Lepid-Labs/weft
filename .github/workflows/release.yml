@@ -1,7 +1,8 @@
 name: Release
 
 # Publishes every public workspace package whose version is not yet on npm.
-# Trigger: push a tag `v<version>` after `just release <version>`.
+# Trigger: push a tag `v<version>`, which `just release-tag <version>` does once
+# the release pull request from `just release <version>` is merged.
 # Auth is npm trusted publishing (OIDC): each package on npmjs.com trusts this
 # workflow, so there is no token secret. A new package must be published once
 # by hand (`just publish`) before it can be given a trusted publisher.
