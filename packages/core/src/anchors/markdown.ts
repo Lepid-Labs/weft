@@ -22,8 +22,9 @@ function toLines(content: string): string[] {
  *
  * Slugs come from `github-slugger`, the implementation GitHub's own rendering
  * uses, rather than an approximation of it: links are authored against how the
- * document renders on GitHub (DD-2), so GitHub's slugs are the correct ones.
- * The slugger also owns the `-1`, `-2` suffixes it appends to repeated slugs.
+ * document renders on GitHub (docs/decisions/0016-standard-markdown-links.md),
+ * so GitHub's slugs are the correct ones. The slugger also owns the `-1`, `-2`
+ * suffixes it appends to repeated slugs.
  */
 export function extractMarkdownAnchors(content: string): Anchor[] {
 	const tree = unified().use(remarkParse).parse(content);

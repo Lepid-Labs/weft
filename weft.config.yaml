@@ -1,13 +1,16 @@
 docsDir: docs
-# entryPoint: docs/features.md
 ignore:
   - "**/node_modules/**"
   - "**/dist/**"
 layout: reader
+# Summaries first; each lists the detail files in its directory, which the tree shows below them.
 docOrder:
-  - features.md
-  - design-decisions.md
+  - PURPOSE.md
+  - guides.md
+  - requirements.md
   - use-cases.md
-  - implementation.md
+  - design.md
+  - decisions.md
   - research.md
-docOrderStrict: true
+  - runbooks.md
+  - open-questions.md

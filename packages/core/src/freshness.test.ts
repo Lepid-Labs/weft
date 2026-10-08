@@ -155,9 +155,10 @@ describe("computeInputsHash", () => {
 	});
 
 	it("does not change when only a file's mtime changes", async () => {
-		// Regression guard against code deliberately not written (DD-4): this
-		// earns its place by stopping mtime from creeping back in later, not by
-		// exercising any behaviour the hash is supposed to have.
+		// Regression guard against code deliberately not written
+		// (docs/decisions/0019-content-hashes-not-timestamps.md): this earns its
+		// place by stopping mtime from creeping back in later, not by exercising
+		// any behaviour the hash is supposed to have.
 		const dir = copyDocsFixture();
 		const config = fixtureConfig({ rootDir: dir });
 		const before = await computeInputsHash(config);
@@ -168,7 +169,7 @@ describe("computeInputsHash", () => {
 		expect(await computeInputsHash(config)).toBe(before);
 	});
 
-	it("does not change when a document-shaped file lands inside .weft/ (DD-15)", async () => {
+	it("does not change when a document-shaped file lands inside .weft/", async () => {
 		// The self-invalidating-loop guard. manifest.json itself would not have
 		// exercised this: .json is not an indexed extension, so it never matched
 		// the doc glob regardless of the ignore. A .md file is the one thing the

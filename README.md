@@ -1,83 +1,70 @@
 # weft
 
-A documentation graph browser that lives in the repository alongside the code. All project
-artifacts — design docs, architecture diagrams, API specs, database schemas, wireframes,
-slide decks, functional specs — are nodes in a navigable graph with typed, anchor-level
-relationships between them. Any document can be the entry point. Navigation is a first-class
-interaction, not an afterthought.
+![Type: native app](https://img.shields.io/badge/type-native_app-blueviolet) ![Status: alpha](https://img.shields.io/badge/status-alpha-yellow) ![Version](https://img.shields.io/npm/v/@lepid-labs/weft?label=version) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+A documentation graph browser that lives in the repository alongside the code. It turns a project's design docs,
+specs, diagrams and decision records into a navigable graph, with typed, anchor-level links between them.
+
+![CI](https://github.com/Lepid-Labs/weft/actions/workflows/ci.yml/badge.svg) [![Docs: project-documentation 1.2.0](https://img.shields.io/badge/docs-project--documentation_1.2.0-blueviolet)](https://lepid-labs.github.io/spec/project-documentation/v1.2.0/) [![Docs: project-details 1.1.0](https://img.shields.io/badge/docs-project--details_1.1.0-blueviolet)](https://lepid-labs.github.io/spec/project-details/v1.1.0/)
+
+Why it exists and who it is for: [docs/PURPOSE.md](docs/PURPOSE.md).
 
 ## Prerequisites
 
-- Node.js >= 24
-- [pnpm](https://pnpm.io/) 9+
-- [just](https://github.com/casey/just) (task runner)
+- Node.js 24 or later
+- git, to serve a repository straight from GitHub and to date documents from their history
+- To work on weft itself: [pnpm](https://pnpm.io/) 9 or later and [just](https://github.com/casey/just)
 
-## Try It
+| Environment variable | Meaning |
+|----------------------|---------|
+| `GH_TOKEN`, `GITHUB_TOKEN` | GitHub token used to fetch a private repository for `weft serve --repo`. Checked in that order; without either, weft asks `gh auth token`. Public repositories need neither |
+| `WEFT_CACHE_DIR` | Where fetched repositories are cached. Defaults to `$XDG_CACHE_HOME/weft` |
+| `XDG_CACHE_HOME` | Base cache directory when `WEFT_CACHE_DIR` is unset. Defaults to `~/.cache` |
+| `NO_COLOR` | When set, `weft serve` prints its `[OK]`/`[FAIL]` status without color |
 
-Serve any GitHub repo's docs graph without cloning it or installing anything but Node 24+ and git:
+## Try it
+
+Serve any GitHub repository's docs graph without cloning it:
 
 ```sh
 npx @lepid-labs/weft serve --gh org/repo --open
 ```
 
-Repos the target's config references are fetched too, so cross-repo links resolve. Private repos
-use `GH_TOKEN`/`GITHUB_TOKEN` or `gh auth login`. To keep it around: `npm install -g @lepid-labs/weft`.
+To serve a local project, run `weft serve` from its root, where `weft.config.yaml` lives. To keep the CLI around:
+`npm install -g @lepid-labs/weft`. Every command and option is in [docs/guides/cli.md](docs/guides/cli.md).
 
-## Quickstart (from a checkout)
+## Develop
+
+From a checkout of this repository:
 
 ```sh
 just install
 just dev
 ```
 
-`just dev` builds the core packages and starts `weft serve --dev` on the local docs graph, with the
-UI served from source by Vite for hot reload. Without `--dev`, `weft serve` serves the UI's
-adapter-node build (`pnpm --filter @lepid-labs/weft-ui build`), which is what a published package ships.
+`just dev` builds the core packages and serves this repository's own docs graph, with the UI served from source for
+hot reload. `just check` runs lint, type-check and tests. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rest.
 
-## Core Concepts
+## Packages
 
-**Node:** Any document artifact — a Markdown file, an OpenAPI spec, a converted slide deck,
-a wireframe, a diagram, a code file, an annotation set.
+| Package | Purpose |
+|---------|---------|
+| [`@lepid-labs/weft`](packages/cli/README.md) | The CLI: serve, index, analyze and check a documentation graph |
+| [`@lepid-labs/weft-core`](packages/core/README.md) | The document graph: indexing, links, validation and search over a docs tree |
+| [`@lepid-labs/weft-ui`](packages/ui/README.md) | The browser UI, prebuilt for the CLI to serve |
+| [`@lepid-labs/weft-embed`](packages/embed/README.md) | The reader as a drop-in browser bundle for any page |
+| [`@lepid-labs/weft-react`](packages/react/README.md) | A React component that renders one section of a docs file |
 
-**Edge:** A typed, directional relationship between two nodes, optionally specifying an
-anchor (section, slide, operation, element) on each end. Edge types include: *implements*,
-*specifies*, *references*, *see-also*, *annotates*.
-
-**Anchor:** An addressable location within a node — a heading in Markdown, a slide number
-in a deck, an operation ID in an OpenAPI spec, a shape ID in a diagram, a line range in code.
-
-**Graph manifest:** A derived index file (auto-generated, never hand-edited) that materializes
-all nodes and edges discovered from the configured docs directory (default `docs/`) and from
-the codebase (e.g. `@doc` references in code). Rebuilt on `weft serve`, `weft index`, and on
-file watch.
+All packages are released together at one version; see [CHANGELOG.md](CHANGELOG.md).
 
 ## Documentation
 
-### Using Weft
-
-| Doc | Purpose |
-|-----|---------|
-| [docs/usage.md](docs/usage.md) | CLI commands, embedding (including one section, and React), navigation, keyboard shortcuts |
-| [docs/configuration.md](docs/configuration.md) | Config file options, frontmatter fields, sidecar `.weft` format |
-| [docs/theming.md](docs/theming.md) | Themes, CSS custom properties, style overrides |
-
-### Project Specification
-
-| Doc | Purpose |
-|-----|---------|
-| [docs/PURPOSE.md](docs/PURPOSE.md) | Why Weft exists and what problem it solves |
-| [docs/research.md](docs/research.md) | Problem, competitive landscape, conversion research |
-| [docs/use-cases.md](docs/use-cases.md) | User scenarios |
-| [docs/plan.md](docs/plan.md) | Phased delivery |
-| [docs/implementation.md](docs/implementation.md) | Technical architecture and behavior |
-| [docs/design-decisions.md](docs/design-decisions.md) | ADRs |
-| [docs/features.md](docs/features.md) | Capability checklist (maps to use cases) |
-
-**Paths:** User projects index their narrative under `docs/` by default (`docsDir` in
-`weft.config.yaml`). A monorepo with several products sets `projects` instead, giving each product
-its own docs root inside one graph — see
-[Multiple Projects](docs/configuration.md#multiple-projects).
+- [Guides](docs/guides.md): using, configuring, embedding and theming weft
+- [Requirements](docs/requirements.md) and [use cases](docs/use-cases.md): what weft must do, and for whom
+- [Design](docs/design.md) and [decisions](docs/decisions.md): how it is built, and why
+- [Research](docs/research.md): the survey and investigations behind the decisions
+- [Runbooks](docs/runbooks.md): releasing and deploying
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

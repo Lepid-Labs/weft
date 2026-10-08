@@ -53,7 +53,7 @@ pages: build-embed
     cp packages/embed/dist/weft.iife.js _site/weft.iife.js
     cp packages/embed/dist/weft.css _site/weft.css
     cp -r docs/.weft _site/docs/.weft
-    cp docs/*.md _site/
+    rsync -a --include='*/' --include='*.md' --exclude='*' --prune-empty-dirs docs/ _site/
 
 # Set the version of every published package, commit and tag it. Pushing the
 # tag runs the Release workflow, which publishes to npm.

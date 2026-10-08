@@ -87,8 +87,9 @@ describe("extractMarkdownAnchors", () => {
 	});
 });
 
-// Slugs are authored against how the document renders on GitHub (DD-2), so
-// github-slugger's output is the correct answer, not an approximation of it.
+// Slugs are authored against how the document renders on GitHub
+// (docs/decisions/0016-standard-markdown-links.md), so github-slugger's output
+// is the correct answer, not an approximation of it.
 describe("extractMarkdownAnchors (GitHub slug parity)", () => {
 	it("gives each space its own hyphen rather than collapsing runs", () => {
 		expect(slugs("## Layout — Presenting Mode\n")).toEqual(["#layout--presenting-mode"]);
