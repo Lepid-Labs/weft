@@ -6,6 +6,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-09
+
 ### Added
 
 - Embed one section of a file: `mountSection` in `@lepid-labs/weft-embed/section`, and the new
@@ -81,7 +83,8 @@ First release to npm, as `@lepid-labs/weft`, `@lepid-labs/weft-core` and `@lepid
   provenance that tells an agent when a manifest is stale (#60).
 - An embeddable, sanitized document viewer (#58), and the lepid-design styles (#83).
 
-[Unreleased]: https://github.com/Lepid-Labs/weft/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Lepid-Labs/weft/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Lepid-Labs/weft/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Lepid-Labs/weft/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Lepid-Labs/weft/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/Lepid-Labs/weft/compare/v0.1.3...v0.1.4

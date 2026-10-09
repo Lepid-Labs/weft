@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft-react",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "A React component that renders one section of a docs file inline, live from its source",
 	"license": "MIT",
 	"repository": {

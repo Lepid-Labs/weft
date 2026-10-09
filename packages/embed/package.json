@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft-embed",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Weft's reader as a drop-in browser bundle: mount a document graph, or one section of a file, in any page",
 	"license": "MIT",
 	"repository": {

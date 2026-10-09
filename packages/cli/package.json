@@ -1,6 +1,6 @@
 {
 	"name": "@lepid-labs/weft",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Weft CLI: serve, index and check a documentation graph, from a checkout or straight from GitHub",
 	"license": "MIT",
 	"repository": {
