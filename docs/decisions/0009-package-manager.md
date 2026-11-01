@@ -50,7 +50,8 @@ the Node runtime most consumers will use.
   specific packages and their dependency chains. No Turborepo or nx needed.
 - **A proven publish story.** `workspace:*` references are replaced with real versions on `pnpm publish`. Several
   scoped packages publish to npm, and that has to be rock solid.
-- **Minimal contributor friction.** `corepack enable && pnpm install`; corepack ships with Node 16 and later.
+- **Minimal contributor friction.** `corepack enable && pnpm install`; corepack ships with Node 16
+  through 24 and installs with `npm install -g corepack` on 25 and later.
 
 ## Consequences
 
